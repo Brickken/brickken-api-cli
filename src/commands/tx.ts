@@ -84,15 +84,4 @@ export function registerTxCommands(program: Command): void {
 			});
 		});
 
-	withFileOption(
-		tx.command('batch')
-			.description('Execute a raw batch specification')
-	).action(async (options, command) => {
-		await runDirectJsonCommand({
-			command,
-			options,
-			label: 'Transaction batch',
-			path: '/batch'
-		});
-	});
 }
