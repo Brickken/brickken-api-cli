@@ -1,6 +1,6 @@
 {
 	"name": "brickken-cli",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Brickken CLI for tokenization, STO, token, info, and transaction workflows",
 	"keywords": [
 		"brickken",
