@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { mapNewTokenizationInput } from '@brickken/core';
+import { mapNewTokenizationInput } from '../internal/core';
 import { runPrepareCommand, withExecuteOption, withFileOption } from './shared';
 
 export function registerTokenizationCommands(program: Command): void {

@@ -9,7 +9,7 @@ import {
 	mapWhitelistInput,
 	requestMultipart,
 	executePreparedResponse
-} from '@brickken/core';
+} from '../internal/core';
 import { readBinaryFile } from '../files';
 import { resolveCliConfig } from '../cli-config';
 import { hasLogicalFailure, printResult } from '../output';

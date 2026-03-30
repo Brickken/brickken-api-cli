@@ -7,7 +7,7 @@ import {
 	normalizeChainId,
 	SANDBOX_BASE_URL,
 	PRODUCTION_BASE_URL
-} from '@brickken/core';
+} from './internal/core';
 
 export { normalizeChainId };
 

@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { mapClaimInput, mapCloseInput, mapInvestInput, mapNewStoInput } from '@brickken/core';
+import { mapClaimInput, mapCloseInput, mapInvestInput, mapNewStoInput } from '../internal/core';
 import { runPrepareCommand, withExecuteOption, withFileOption } from './shared';
 
 export function registerStoCommands(program: Command): void {

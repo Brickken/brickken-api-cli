@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { readStructuredFile } from '../files';
-import { requestJson, executePreparedResponse, cleanInput, ResolvedConfig } from '@brickken/core';
-import { signTransactionsLocally } from '@brickken/core';
+import { requestJson, executePreparedResponse, cleanInput, ResolvedConfig } from '../internal/core';
+import { signTransactionsLocally } from '../internal/core';
 import { resolveCliConfig } from '../cli-config';
 import { hasLogicalFailure, printResult } from '../output';
 

@@ -1,4 +1,4 @@
-import { HttpError, ResolvedConfig } from '@brickken/core';
+import { HttpError, ResolvedConfig } from './internal/core';
 
 export function printResult(result: any, config: ResolvedConfig, label?: string): void {
 	if (config.outputJson) {

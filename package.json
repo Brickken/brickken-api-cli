@@ -1,20 +1,52 @@
 {
 	"name": "@brickken/cli",
 	"version": "0.1.0",
-	"private": true,
+	"description": "Brickken CLI for tokenization, STO, token, info, and transaction workflows",
+	"keywords": [
+		"brickken",
+		"cli",
+		"sto",
+		"tokenization",
+		"web3"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Brickken/brickken-api-cli.git"
+	},
+	"homepage": "https://github.com/Brickken/brickken-api-cli#readme",
+	"bugs": {
+		"url": "https://github.com/Brickken/brickken-api-cli/issues"
+	},
+	"license": "MIT",
+	"private": false,
 	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"bin": {
 		"brickken": "dist/index.js"
 	},
+	"files": [
+		"dist"
+	],
 	"scripts": {
-		"build": "tsc --project tsconfig.json"
+		"build": "tsc --project tsconfig.json",
+		"prepack": "npm run build",
+		"publish:public": "pnpm publish --access public"
 	},
 	"dependencies": {
-		"@brickken/core": "0.1.0",
+		"axios": "^0.27.2",
 		"commander": "^14.0.3",
 		"dotenv": "^14.2.0",
+		"ethers": "^5.7.2",
+		"form-data": "^4.0.1",
 		"source-map-support": "^0.5.19",
 		"yaml": "^2.8.2"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"packageManager": "pnpm@10.8.1",
+	"engines": {
+		"node": ">=18"
 	},
 	"devDependencies": {
 		"typescript": "^4.6.2",

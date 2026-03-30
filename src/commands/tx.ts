@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { prepareBodyForMethod } from '@brickken/core';
+import { prepareBodyForMethod } from '../internal/core';
 import { runDirectJsonCommand, runInfoCommand, runLocalSigningCommand, withFileOption, collectValues } from './shared';
 
 export function registerTxCommands(program: Command): void {
