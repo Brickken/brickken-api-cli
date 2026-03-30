@@ -32,26 +32,6 @@ pnpm build
 node dist/index.js --help
 ```
 
-## Publish to npm
-
-```bash
-pnpm publish --access public
-```
-
-Or via script:
-
-```bash
-pnpm run publish:public
-```
-
-## Automated publish (GitHub Actions)
-
-This repository includes a workflow at `.github/workflows/publish-npm.yml`.
-
-- publishes automatically when a tag matching `v*` is pushed (e.g. `v0.1.1`)
-- can also be triggered manually with `workflow_dispatch`
-- requires a repository secret named `NPM_TOKEN` with publish permissions for `@brickken/cli`
-
 ## Authentication
 
 The CLI supports both Brickken authentication modes:
