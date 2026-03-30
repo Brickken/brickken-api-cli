@@ -1,5 +1,5 @@
 {
-	"name": "@brickken/cli",
+	"name": "brickken-cli",
 	"version": "0.1.0",
 	"description": "Brickken CLI for tokenization, STO, token, info, and transaction workflows",
 	"keywords": [
