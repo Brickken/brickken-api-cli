@@ -1,3 +1,4 @@
+import path from 'path';
 import dotenv from 'dotenv';
 import { Command } from 'commander';
 import {
@@ -26,16 +27,25 @@ export function getGlobalOptions(command: Command): GlobalCliOptions {
 }
 
 export function loadEnvFile(envFile?: string): void {
-	if (!envFile || loadedEnvFiles.has(envFile)) {
+	const resolvedEnvFile = envFile || path.resolve(process.cwd(), '.env');
+
+	if (loadedEnvFiles.has(resolvedEnvFile)) {
 		return;
 	}
 
-	const result = dotenv.config({ path: envFile });
+	const result = envFile
+		? dotenv.config({ path: resolvedEnvFile })
+		: dotenv.config();
+
 	if (result.error) {
-		throw new Error(`Unable to load env file "${envFile}": ${result.error.message}`);
+		if (!envFile && (result.error as NodeJS.ErrnoException).code === 'ENOENT') {
+			return;
+		}
+
+		throw new Error(`Unable to load env file "${resolvedEnvFile}": ${result.error.message}`);
 	}
 
-	loadedEnvFiles.add(envFile);
+	loadedEnvFiles.add(resolvedEnvFile);
 }
 
 export function resolveCliConfig(command: Command): ResolvedConfig & { outputJson: boolean } {
@@ -43,7 +53,12 @@ export function resolveCliConfig(command: Command): ResolvedConfig & { outputJso
 
 	loadEnvFile(options.envFile);
 
-	const env = (options.env || 'sandbox') as BrickkenEnvironment;
+	const env = (
+		options.env ||
+		process.env.BRICKKEN_ENV ||
+		process.env.BKN_ENV ||
+		'sandbox'
+	) as BrickkenEnvironment;
 	const baseUrl =
 		options.baseUrl ||
 		process.env.BRICKKEN_BASE_URL ||

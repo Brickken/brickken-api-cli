@@ -28,7 +28,6 @@ export function buildProgram(): Command {
 		.addOption(
 			new Option('--env <environment>', 'Target Brickken environment')
 				.choices(['sandbox', 'production'])
-				.default('sandbox')
 		)
 		.option('--base-url <url>', 'Override the Brickken API base URL')
 		.option('--api-key <key>', 'Brickken API key')
