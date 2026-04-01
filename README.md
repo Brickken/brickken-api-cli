@@ -17,11 +17,12 @@ Repository: https://github.com/Brickken/brickken-api-cli
 ## Install
 
 ```bash
-npm install -g @brickken/cli
+npm install -g brickken-cli
 ```
 
 ```bash
-pnpm add -g @brickken/cli
+pnpm setup
+pnpm add -g brickken-cli
 ```
 
 ## Build Locally
