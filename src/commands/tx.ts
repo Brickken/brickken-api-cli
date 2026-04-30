@@ -1,24 +1,33 @@
 import { Command } from 'commander';
 import { prepareBodyForMethod } from '../internal/core';
-import { runDirectJsonCommand, runInfoCommand, runLocalSigningCommand, withFileOption, collectValues } from './shared';
+import {
+	runDirectJsonCommand,
+	runInfoCommand,
+	runLocalSigningCommand,
+	runPrepareCommand,
+	withExecuteOption,
+	withFileOption,
+	collectValues
+} from './shared';
 
 export function registerTxCommands(program: Command): void {
 	const tx = program.command('tx').description('Access raw Brickken API V2 transaction flows');
 
-	withFileOption(
-		tx.command('prepare')
-			.description('Prepare raw Brickken transactions')
-			.requiredOption('--method <method>', 'Brickken transaction method')
-			.option('--chain <chain>', 'Chain identifier')
-			.option('--signer-address <address>', 'Signer wallet address')
-			.option('--investor-address <address>', 'Investor wallet address')
-			.option('--token-symbol <symbol>', 'Token symbol')
+	withExecuteOption(
+		withFileOption(
+			tx.command('prepare')
+				.description('Prepare raw Brickken transactions, or execute them with --execute')
+				.requiredOption('--method <method>', 'Brickken transaction method')
+				.option('--chain <chain>', 'Chain identifier')
+				.option('--signer-address <address>', 'Signer wallet address')
+				.option('--investor-address <address>', 'Investor wallet address')
+				.option('--token-symbol <symbol>', 'Token symbol')
+		)
 	).action(async (options, command) => {
-		await runDirectJsonCommand({
+		await runPrepareCommand({
 			command,
 			options,
 			label: 'Transaction prepare',
-			path: '/prepare-transactions',
 			mapInput: (input) => prepareBodyForMethod(options.method, input)
 		});
 	});

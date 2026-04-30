@@ -6,6 +6,7 @@ import { registerStoCommands } from './commands/sto';
 import { registerTokenCommands } from './commands/token';
 import { registerTokenizationCommands } from './commands/tokenization';
 import { registerTxCommands } from './commands/tx';
+import { registerAgentCommands } from './commands/agent';
 
 function getPackageVersion(): string {
 	try {
@@ -22,7 +23,7 @@ export function buildProgram(): Command {
 
 	program
 		.name('brickken')
-		.description('Brickken CLI for API V2 tokenization, token, STO, info, and tx workflows')
+		.description('Brickken CLI for API V2 agent, tokenization, token, STO, info, and tx workflows')
 		.version(getPackageVersion())
 		.showHelpAfterError()
 		.addOption(
@@ -35,6 +36,7 @@ export function buildProgram(): Command {
 		.option('--env-file <path>', 'Optional env file to load before resolving config')
 		.option('--json', 'Print machine-readable JSON output');
 
+	registerAgentCommands(program);
 	registerTokenizationCommands(program);
 	registerStoCommands(program);
 	registerTokenCommands(program);
