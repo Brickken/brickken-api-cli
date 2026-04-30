@@ -50,6 +50,10 @@ function runCli(args, { cwd, env }) {
 			cwd,
 			env: {
 				...process.env,
+				BRICKKEN_API_KEY: '',
+				BKN_API_KEY: '',
+				BRICKKEN_PRIVATE_KEY: '',
+				BKN_PRIVATE_KEY: '',
 				...env
 			},
 			stdio: ['ignore', 'pipe', 'pipe']
@@ -92,6 +96,7 @@ async function startMockServer({ preparedResponse, sendResponse }) {
 			requests.push({
 				method: req.method,
 				url: req.url,
+				headers: req.headers,
 				body: parsedBody
 			});
 
@@ -125,6 +130,176 @@ async function startMockServer({ preparedResponse, sendResponse }) {
 		}
 	};
 }
+
+test('top-level create-token prepares createToken and ignores API key environment variables', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace, 'BRICKKEN_API_KEY=from-env-file\nBKN_API_KEY=also-ignored\n');
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xcreate-token',
+			transactions: buildTransaction({ nonce: 10 })
+		},
+		sendResponse: { success: true }
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'create-token',
+				'--chain',
+				'11155111',
+				'--owner-email',
+				'owner@example.com',
+				'--signer-address',
+				TEST_WALLET.address,
+				'--name',
+				'Research Agent Token',
+				'--symbol',
+				'RAGT',
+				'--agent-wallet',
+				TEST_WALLET.address,
+				'--premint',
+				'1000',
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl
+			],
+			{
+				cwd: workspace,
+				env: {
+					BRICKKEN_API_KEY: 'from-process-env',
+					BKN_API_KEY: 'also-from-process-env'
+				}
+			}
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+		assert.equal(server.requests.length, 1);
+		assert.equal(server.requests[0].url, '/prepare-transactions');
+		assert.equal(server.requests[0].headers['x-api-key'], undefined);
+		assert.equal(server.requests[0].body.method, 'createToken');
+		assert.equal(server.requests[0].body.chainId, 'aa36a7');
+		assert.equal(server.requests[0].body.ownerEmail, 'owner@example.com');
+		assert.equal(server.requests[0].body.symbol, 'RAGT');
+	} finally {
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('top-level mint prepares mintToken', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace);
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xmint-token',
+			transactions: buildTransaction({ nonce: 11 })
+		},
+		sendResponse: { success: true }
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'mint',
+				'--chain',
+				'11155111',
+				'--owner-email',
+				'owner@example.com',
+				'--signer-address',
+				TEST_WALLET.address,
+				'--token-address',
+				'0x000000000000000000000000000000000000beef',
+				'--to',
+				TEST_WALLET.address,
+				'--amount',
+				'100',
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl
+			],
+			{ cwd: workspace, env: {} }
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+		assert.equal(server.requests.length, 1);
+		assert.equal(server.requests[0].body.method, 'mintToken');
+		assert.equal(server.requests[0].body.to, TEST_WALLET.address);
+		assert.equal(server.requests[0].body.amount, '100');
+	} finally {
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('top-level burn prepares burnToken', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace);
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xburn-token',
+			transactions: buildTransaction({ nonce: 12 })
+		},
+		sendResponse: { success: true }
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'burn',
+				'--chain',
+				'11155111',
+				'--owner-email',
+				'owner@example.com',
+				'--signer-address',
+				TEST_WALLET.address,
+				'--token-address',
+				'0x000000000000000000000000000000000000beef',
+				'--from',
+				TEST_WALLET.address,
+				'--amount',
+				'25',
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl
+			],
+			{ cwd: workspace, env: {} }
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+		assert.equal(server.requests.length, 1);
+		assert.equal(server.requests[0].body.method, 'burnToken');
+		assert.equal(server.requests[0].body.from, TEST_WALLET.address);
+		assert.equal(server.requests[0].body.amount, '25');
+	} finally {
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('legacy command groups and old agent economics aliases are unavailable', async () => {
+	const workspace = await createTempWorkspace();
+
+	try {
+		for (const commandName of ['tokenization', 'sto', 'token', 'info']) {
+			const result = await runCli([commandName, 'removed'], { cwd: workspace, env: {} });
+			assert.notEqual(result.status, 0, commandName);
+			assert.match(result.stderr, /unknown command/i);
+		}
+
+		const oldAgentCommand = await runCli(['agent', 'create-token'], {
+			cwd: workspace,
+			env: {}
+		});
+		assert.notEqual(oldAgentCommand.status, 0);
+		assert.match(oldAgentCommand.stderr, /unknown command/i);
+	} finally {
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
 
 test('tx prepare without --execute only prepares the transaction', async () => {
 	const workspace = await createTempWorkspace();
@@ -290,7 +465,7 @@ test('tx prepare --execute handles transactions returned as an array', async () 
 				'tx',
 				'prepare',
 				'--method',
-				'agentMintToken',
+				'mintToken',
 				'--file',
 				inputFile,
 				'--env-file',

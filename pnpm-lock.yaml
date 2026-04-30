@@ -20,9 +20,6 @@ importers:
       ethers:
         specifier: ^5.7.2
         version: 5.8.0
-      form-data:
-        specifier: ^4.0.1
-        version: 4.0.5
       source-map-support:
         specifier: ^0.5.19
         version: 0.5.21

@@ -3,7 +3,6 @@ export type BrickkenEnvironment = 'sandbox' | 'production';
 export interface ResolvedConfig {
 	env: BrickkenEnvironment;
 	baseUrl: string;
-	apiKey?: string;
 	privateKey?: string;
 	outputJson?: boolean;
 }

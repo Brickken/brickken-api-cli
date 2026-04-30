@@ -1,14 +1,12 @@
 # Brickken CLI
 
-Public CLI for the [Brickken](https://brickken.com) API.
+Public x402-paid CLI for the [Brickken](https://brickken.com) agentic API.
 
 It covers:
 
-- ERC-8004 agent identity and x402-capable agent token operations
-- standard tokenization flows
-- STO lifecycle commands
-- token operations
-- read-only info queries
+- ERC-8004 agent identity operations
+- ERC-8004 reputation feedback operations
+- x402-capable agentic token create, mint, and burn operations
 - raw transaction preparation, signing, sending, and one-shot execution
 
 Repository: https://github.com/Brickken/brickken-api-cli
@@ -21,26 +19,17 @@ npm install -g brickken-cli
 
 ## Authentication
 
-The CLI supports two authentication modes:
+The CLI is x402-only. Do not pass or export API keys; `BRICKKEN_API_KEY` and `BKN_API_KEY` are ignored.
 
-- Agent methods (`agent*`) can use x402 payment or an API key.
-- Standard tokenization, token, STO, invest, claim, and on-behalf methods require an API key.
-
-For x402 agent flows, do not pass `--api-key` and do not export `BRICKKEN_API_KEY` / `BKN_API_KEY`. Provide a private key for local transaction signing and x402 payment signing:
+Provide a private key for local transaction signing and x402 payment signing:
 
 ```bash
 export BRICKKEN_PRIVATE_KEY=0x...
 ```
 
-For API-key flows:
-
-```bash
-export BRICKKEN_API_KEY=...
-```
-
 ## Agent Tokenization With x402 + Execute
 
-The agent commands are designed for the common ERC-8004 path. `--execute` prepares the transaction, signs it locally, sends it, and automatically pays the API request with x402 when no API key is configured.
+The high-level commands are designed for the common ERC-8004 path. `--execute` prepares the transaction, signs it locally, sends it, and automatically pays the API request with x402 when the API returns a payment requirement.
 
 Register the agent:
 
@@ -71,10 +60,10 @@ brickken agent set-uri \
   --json
 ```
 
-Deploy an agent token:
+Deploy an agentic token:
 
 ```bash
-brickken agent create-token \
+brickken create-token \
   --chain 11155111 \
   --owner-email tokenizer@example.com \
   --signer-address 0xYourWallet \
@@ -89,7 +78,7 @@ brickken agent create-token \
 Use the returned `sent.results[0].result.tokenAddress` to mint more tokens:
 
 ```bash
-brickken agent mint \
+brickken mint \
   --chain 11155111 \
   --owner-email tokenizer@example.com \
   --signer-address 0xYourWallet \
@@ -100,19 +89,32 @@ brickken agent mint \
   --json
 ```
 
+Burn tokens:
+
+```bash
+brickken burn \
+  --chain 11155111 \
+  --owner-email tokenizer@example.com \
+  --signer-address 0xYourWallet \
+  --token-address 0xDeployedAgentToken \
+  --from 0xHolderWallet \
+  --amount 25 \
+  --execute \
+  --json
+```
+
 You can also use the raw transaction surface for any method:
 
 ```bash
-brickken tx prepare --method agentCreateToken --file agent-token.json --execute --json
+brickken tx prepare --method createToken --file token.json --execute --json
 ```
 
 ## Command Groups
 
-- `brickken agent`: ERC-8004 identity, reputation, and agent token operations. Supports x402 or API key.
-- `brickken tokenization`: standard tokenization. API-key-only.
-- `brickken token`: standard token mint, burn, transfer, approve, and docs operations. API-key-only.
-- `brickken sto`: standard STO workflows. API-key-only.
-- `brickken info`: read-only API queries.
+- `brickken agent`: ERC-8004 identity and reputation operations.
+- `brickken create-token`: deploy an agentic ERC-20 through the x402 flow.
+- `brickken mint`: mint an agentic ERC-20 through the x402 flow.
+- `brickken burn`: burn an agentic ERC-20 through the x402 flow.
 - `brickken tx`: raw prepare, sign, send, status, and one-shot execute flows.
 
 High-level write commands are prepare-only by default. Add `--execute` to prepare, sign locally, and send in one command.
@@ -140,11 +142,11 @@ The `tx` command group is the lowest-level interface to the Brickken API V2 prep
 | Command | Purpose | Typical usage |
 | --- | --- | --- |
 | `brickken tx prepare` | Prepare a raw transaction payload | Agentic methods and custom API V2 methods |
-| `brickken tx sign` | Sign a prepared transaction locally | Manual debugging and step-by-step flows |
+| `brickken tx sign` | Sign a transaction locally | Manual debugging and step-by-step flows |
 | `brickken tx send` | Send signed transaction payloads | Manual debugging and step-by-step flows |
 | `brickken tx status` | Look up a broadcast transaction by hash | Post-send tracking |
 
-For agentic methods, `brickken tx prepare --execute` is now the recommended one-shot flow because it:
+For `brickken tx prepare --execute`, the CLI:
 
 1. prepares the transaction with `/prepare-transactions`
 2. signs locally with the configured private key
@@ -154,7 +156,7 @@ Example:
 
 ```bash
 brickken tx prepare \
-  --method erc8004RegisterAgent \
+  --method agentRegister \
   --file agent-register.json \
   --execute
 ```
@@ -167,7 +169,6 @@ Global flags:
 
 - `--env <sandbox|production>`
 - `--base-url <url>`
-- `--api-key <key>`
 - `--private-key <key>`
 - `--env-file <path>`
 - `--json`
@@ -175,7 +176,6 @@ Global flags:
 Environment variables:
 
 - `BRICKKEN_PRIVATE_KEY` or `BKN_PRIVATE_KEY`
-- `BRICKKEN_API_KEY` or `BKN_API_KEY`
 - `BRICKKEN_BASE_URL` or `BKN_BASE_URL`
 - `BRICKKEN_ENV` or `BKN_ENV`
 
@@ -193,16 +193,17 @@ node dist/index.js --help
 
 The npm publish workflow expects a tag that exactly matches `package.json`.
 
-Example for version `0.3.1`:
+Example for version `0.4.0`:
 
 ```bash
 git checkout main
 git pull --ff-only
-git tag -a v0.3.1 -m "Release v0.3.1"
-git push origin v0.3.1
+git tag -a v0.4.0 -m "Release v0.4.0"
+git push origin main
+git push origin v0.4.0
 ```
 
-The publish workflow now validates that:
+The publish workflow validates that:
 
 - the pushed tag is exactly `v<package.json version>`
 - the target version is greater than the currently published npm version
@@ -210,5 +211,5 @@ The publish workflow now validates that:
 You can also run the same guard locally:
 
 ```bash
-RELEASE_TAG=v0.3.1 pnpm release:check
+RELEASE_TAG=v0.4.0 pnpm release:check
 ```

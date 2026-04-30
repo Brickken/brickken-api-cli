@@ -14,7 +14,6 @@ export { normalizeChainId };
 export interface GlobalCliOptions {
 	env?: BrickkenEnvironment;
 	baseUrl?: string;
-	apiKey?: string;
 	privateKey?: string;
 	envFile?: string;
 	json?: boolean;
@@ -68,7 +67,6 @@ export function resolveCliConfig(command: Command): ResolvedConfig & { outputJso
 	return {
 		env,
 		baseUrl,
-		apiKey: options.apiKey || process.env.BRICKKEN_API_KEY || process.env.BKN_API_KEY,
 		privateKey:
 			options.privateKey || process.env.BRICKKEN_PRIVATE_KEY || process.env.BKN_PRIVATE_KEY,
 		outputJson: Boolean(options.json)

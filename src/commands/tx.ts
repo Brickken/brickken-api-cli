@@ -20,8 +20,6 @@ export function registerTxCommands(program: Command): void {
 				.requiredOption('--method <method>', 'Brickken transaction method')
 				.option('--chain <chain>', 'Chain identifier')
 				.option('--signer-address <address>', 'Signer wallet address')
-				.option('--investor-address <address>', 'Investor wallet address')
-				.option('--token-symbol <symbol>', 'Token symbol')
 		)
 	).action(async (options, command) => {
 		await runPrepareCommand({

@@ -51,7 +51,6 @@ export function resolveConfigFromEnv(): ResolvedConfig {
 	return {
 		env,
 		baseUrl,
-		apiKey: process.env.BRICKKEN_API_KEY || process.env.BKN_API_KEY,
 		privateKey: process.env.BRICKKEN_PRIVATE_KEY || process.env.BKN_PRIVATE_KEY
 	};
 }

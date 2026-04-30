@@ -1,5 +1,4 @@
 import axios, { AxiosResponse, Method } from 'axios';
-import FormData from 'form-data';
 import { X402Metadata, ResolvedConfig } from './types';
 import {
 	attachX402Metadata,
@@ -33,12 +32,8 @@ interface BaseRequestOptions extends JsonRequestOptions {
 	headers?: Record<string, string>;
 }
 
-function buildHeaders(
-	config: ResolvedConfig,
-	extraHeaders: Record<string, string> = {}
-): Record<string, string> {
+function buildHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
 	return {
-		...(config.apiKey ? { 'x-api-key': config.apiKey } : {}),
 		...extraHeaders
 	};
 }
@@ -66,7 +61,7 @@ async function sendRequest<T>(
 		method: options.method,
 		params: cleanQuery(options.query),
 		data: options.data,
-		headers: buildHeaders(config, {
+		headers: buildHeaders({
 			...(options.headers || {}),
 			...extraHeaders
 		}),
@@ -110,7 +105,7 @@ async function handleResponse<T>(
 		return decorateWithSettlement(response);
 	}
 
-	if (response.status === 402 && !config.apiKey && config.privateKey) {
+	if (response.status === 402 && config.privateKey) {
 		const paymentRequired = decodePaymentRequired(
 			response.headers as Record<string, unknown> | undefined
 		);
@@ -146,31 +141,4 @@ export async function requestJson<T>(
 	};
 	const response = await sendRequest<T>(config, requestOptions);
 	return handleResponse(config, requestOptions, response, 'Brickken API request failed');
-}
-
-function buildMultipartBody(form: FormData): { data: Buffer; headers: Record<string, string> } {
-	const data = form.getBuffer();
-	return {
-		data,
-		headers: {
-			...form.getHeaders(),
-			'Content-Length': String(data.length)
-		}
-	};
-}
-
-export async function requestMultipart<T>(
-	config: ResolvedConfig,
-	path: string,
-	form: FormData
-): Promise<T> {
-	const multipart = buildMultipartBody(form);
-	const requestOptions: BaseRequestOptions = {
-		method: 'PATCH',
-		path,
-		data: multipart.data,
-		headers: multipart.headers
-	};
-	const response = await sendRequest<T>(config, requestOptions);
-	return handleResponse(config, requestOptions, response, 'Brickken API multipart request failed');
 }

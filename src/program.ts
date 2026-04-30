@@ -1,12 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { Command, Option } from 'commander';
-import { registerInfoCommands } from './commands/info';
-import { registerStoCommands } from './commands/sto';
-import { registerTokenCommands } from './commands/token';
-import { registerTokenizationCommands } from './commands/tokenization';
 import { registerTxCommands } from './commands/tx';
 import { registerAgentCommands } from './commands/agent';
+import { registerTokenEconomicsCommands } from './commands/economics';
 
 function getPackageVersion(): string {
 	try {
@@ -23,7 +20,7 @@ export function buildProgram(): Command {
 
 	program
 		.name('brickken')
-		.description('Brickken CLI for API V2 agent, tokenization, token, STO, info, and tx workflows')
+		.description('Brickken CLI for x402-paid agentic API V2 transaction workflows')
 		.version(getPackageVersion())
 		.showHelpAfterError()
 		.addOption(
@@ -31,16 +28,12 @@ export function buildProgram(): Command {
 				.choices(['sandbox', 'production'])
 		)
 		.option('--base-url <url>', 'Override the Brickken API base URL')
-		.option('--api-key <key>', 'Brickken API key')
 		.option('--private-key <key>', 'Private key used for local signing and x402 payment flows')
 		.option('--env-file <path>', 'Optional env file to load before resolving config')
 		.option('--json', 'Print machine-readable JSON output');
 
 	registerAgentCommands(program);
-	registerTokenizationCommands(program);
-	registerStoCommands(program);
-	registerTokenCommands(program);
-	registerInfoCommands(program);
+	registerTokenEconomicsCommands(program);
 	registerTxCommands(program);
 
 	return program;

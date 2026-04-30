@@ -1,10 +1,7 @@
 import { Command } from 'commander';
 import {
 	mapAgentAppendFeedbackResponseInput,
-	mapAgentBurnTokenInput,
-	mapAgentCreateTokenInput,
 	mapAgentGiveFeedbackInput,
-	mapAgentMintTokenInput,
 	mapAgentRegisterInput,
 	mapAgentRevokeFeedbackInput,
 	mapAgentSetMetadataInput,
@@ -66,7 +63,7 @@ async function runAgentPrepare(
 export function registerAgentCommands(program: Command): void {
 	const agent = program
 		.command('agent')
-		.description('Manage ERC-8004 agent identity, x402-capable agent tokens, and reputation');
+		.description('Manage ERC-8004 agent identity and reputation');
 
 	withExecuteOption(
 		withFileOption(
@@ -130,60 +127,6 @@ export function registerAgentCommands(program: Command): void {
 		)
 	).action(async (options, command) => {
 		await runAgentPrepare(command, options, 'Agent set wallet', mapAgentSetWalletInput);
-	});
-
-	withExecuteOption(
-		withFileOption(
-			withAgentBaseOptions(
-				agent.command('create-token')
-					.description('Prepare or execute an agent ERC-20 token deployment')
-					.option('--owner-email <email>', 'Tokenizer owner email')
-					.option('--email <email>', 'Alias for --owner-email')
-					.option('--name <name>', 'Token name')
-					.option('--symbol <symbol>', 'Token symbol')
-					.option('--token-symbol <symbol>', 'Alias for --symbol')
-					.option('--agent-wallet <address>', 'Wallet that owns/mints the agent token')
-					.option('--premint <amount>', 'Human-readable premint amount')
-					.option('--decimals <value>', 'Token decimals')
-			)
-		)
-	).action(async (options, command) => {
-		await runAgentPrepare(command, options, 'Agent create token', mapAgentCreateTokenInput);
-	});
-
-	withExecuteOption(
-		withFileOption(
-			withAgentBaseOptions(
-				agent.command('mint')
-					.description('Prepare or execute an agent token mint')
-					.option('--owner-email <email>', 'Tokenizer owner email')
-					.option('--email <email>', 'Alias for --owner-email')
-					.option('--token-address <address>', 'Agent ERC-20 token address')
-					.option('--to <address>', 'Recipient wallet address')
-					.option('--recipient-address <address>', 'Alias for --to')
-					.option('--amount <amount>', 'Human-readable token amount')
-					.option('--decimals <value>', 'Token decimals')
-			)
-		)
-	).action(async (options, command) => {
-		await runAgentPrepare(command, options, 'Agent mint token', mapAgentMintTokenInput);
-	});
-
-	withExecuteOption(
-		withFileOption(
-			withAgentBaseOptions(
-				agent.command('burn')
-					.description('Prepare or execute an agent token burn')
-					.option('--owner-email <email>', 'Tokenizer owner email')
-					.option('--email <email>', 'Alias for --owner-email')
-					.option('--token-address <address>', 'Agent ERC-20 token address')
-					.option('--from <address>', 'Wallet address to burn from')
-					.option('--amount <amount>', 'Human-readable token amount')
-					.option('--decimals <value>', 'Token decimals')
-			)
-		)
-	).action(async (options, command) => {
-		await runAgentPrepare(command, options, 'Agent burn token', mapAgentBurnTokenInput);
 	});
 
 	const feedback = agent.command('feedback').description('Manage ERC-8004 agent reputation feedback');
