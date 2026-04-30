@@ -193,13 +193,13 @@ node dist/index.js --help
 
 The npm publish workflow expects a tag that exactly matches `package.json`.
 
-Example for version `0.3.0`:
+Example for version `0.3.1`:
 
 ```bash
 git checkout main
 git pull --ff-only
-git tag -a v0.3.0 -m "Release v0.3.0"
-git push origin v0.3.0
+git tag -a v0.3.1 -m "Release v0.3.1"
+git push origin v0.3.1
 ```
 
 The publish workflow now validates that:
@@ -210,5 +210,5 @@ The publish workflow now validates that:
 You can also run the same guard locally:
 
 ```bash
-RELEASE_TAG=v0.3.0 pnpm release:check
+RELEASE_TAG=v0.3.1 pnpm release:check
 ```
