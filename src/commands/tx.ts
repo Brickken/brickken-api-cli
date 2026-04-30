@@ -1,13 +1,13 @@
 import { Command } from 'commander';
 import { prepareBodyForMethod } from '../internal/core';
 import {
+	collectValues,
 	runDirectJsonCommand,
 	runInfoCommand,
 	runLocalSigningCommand,
 	runPrepareCommand,
 	withExecuteOption,
-	withFileOption,
-	collectValues
+	withFileOption
 } from './shared';
 
 export function registerTxCommands(program: Command): void {

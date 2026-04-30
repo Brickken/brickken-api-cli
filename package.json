@@ -1,6 +1,6 @@
 {
 	"name": "brickken-cli",
-	"version": "0.1.2",
+	"version": "0.3.0",
 	"description": "Brickken CLI for tokenization, STO, token, info, and transaction workflows",
 	"keywords": [
 		"brickken",
@@ -29,6 +29,8 @@
 	],
 	"scripts": {
 		"build": "tsc --project tsconfig.json",
+		"test": "node --test",
+		"release:check": "node scripts/release-check.js",
 		"prepack": "npm run build",
 		"publish:public": "pnpm publish --access public"
 	},
