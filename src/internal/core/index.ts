@@ -23,6 +23,16 @@ export {
 	mapTransferInput,
 	mapApproveInput,
 	mapDividendInput,
+	mapAgentRegisterInput,
+	mapAgentSetUriInput,
+	mapAgentSetMetadataInput,
+	mapAgentSetWalletInput,
+	mapAgentCreateTokenInput,
+	mapAgentMintTokenInput,
+	mapAgentBurnTokenInput,
+	mapAgentGiveFeedbackInput,
+	mapAgentRevokeFeedbackInput,
+	mapAgentAppendFeedbackResponseInput,
 	prepareBodyForMethod,
 	cleanInput
 } from './mappers';

@@ -2,10 +2,10 @@ import { Command } from 'commander';
 import { prepareBodyForMethod } from '../internal/core';
 import {
 	collectValues,
+	runDirectJsonCommand,
 	runInfoCommand,
 	runLocalSigningCommand,
 	runPrepareCommand,
-	runDirectJsonCommand,
 	withExecuteOption,
 	withFileOption
 } from './shared';
@@ -16,7 +16,7 @@ export function registerTxCommands(program: Command): void {
 	withExecuteOption(
 		withFileOption(
 			tx.command('prepare')
-				.description('Prepare raw Brickken transactions')
+				.description('Prepare raw Brickken transactions, or execute them with --execute')
 				.requiredOption('--method <method>', 'Brickken transaction method')
 				.option('--chain <chain>', 'Chain identifier')
 				.option('--signer-address <address>', 'Signer wallet address')
