@@ -8,10 +8,10 @@ const { spawn } = require('node:child_process');
 const { Wallet } = require('ethers');
 
 const CLI_PATH = path.resolve(__dirname, '..', 'dist', 'index.js');
-const TEST_PRIVATE_KEY = '0x59c6995e998f97a5a0044966f0945382d7d8b2f8d96f7f9b08d2f4f6f5f9d8f7';
-const TEST_WALLET = new Wallet(TEST_PRIVATE_KEY);
-const ALT_PRIVATE_KEY = '0x8b3a350cf5c34c9194ca3a545d79b0f8de8d90c5f6f2a444ef322a32956543b6';
-const ALT_WALLET = new Wallet(ALT_PRIVATE_KEY);
+const TEST_WALLET = Wallet.createRandom();
+const TEST_PRIVATE_KEY = TEST_WALLET.privateKey;
+const ALT_WALLET = Wallet.createRandom();
+const ALT_PRIVATE_KEY = ALT_WALLET.privateKey;
 
 function buildTransaction({ nonce, from = TEST_WALLET.address }) {
 	return {
