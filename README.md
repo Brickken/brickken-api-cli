@@ -239,28 +239,3 @@ pnpm install
 pnpm build
 node dist/index.js --help
 ```
-
-## Release
-
-The npm publish workflow expects a tag that exactly matches `package.json`.
-
-Example for version `0.4.1`:
-
-```bash
-git checkout main
-git pull --ff-only
-git tag -a v0.4.1 -m "Release v0.4.1"
-git push origin main
-git push origin v0.4.1
-```
-
-The publish workflow validates that:
-
-- the pushed tag is exactly `v<package.json version>`
-- the target version is greater than the currently published npm version
-
-You can also run the same guard locally:
-
-```bash
-RELEASE_TAG=v0.4.1 pnpm release:check
-```
