@@ -131,7 +131,7 @@ async function startMockServer({ preparedResponse, sendResponse }) {
 	};
 }
 
-test('top-level create-token prepares createToken and ignores API key environment variables', async () => {
+test('top-level create-token prepares agentCreateToken and ignores API key environment variables', async () => {
 	const workspace = await createTempWorkspace();
 	const envFile = await writeEnvFile(workspace, 'BRICKKEN_API_KEY=from-env-file\nBKN_API_KEY=also-ignored\n');
 	const server = await startMockServer({
@@ -178,7 +178,7 @@ test('top-level create-token prepares createToken and ignores API key environmen
 		assert.equal(server.requests.length, 1);
 		assert.equal(server.requests[0].url, '/prepare-transactions');
 		assert.equal(server.requests[0].headers['x-api-key'], undefined);
-		assert.equal(server.requests[0].body.method, 'createToken');
+		assert.equal(server.requests[0].body.method, 'agentCreateToken');
 		assert.equal(server.requests[0].body.chainId, 'aa36a7');
 		assert.equal(server.requests[0].body.ownerEmail, 'owner@example.com');
 		assert.equal(server.requests[0].body.symbol, 'RAGT');
@@ -188,7 +188,7 @@ test('top-level create-token prepares createToken and ignores API key environmen
 	}
 });
 
-test('top-level mint prepares mintToken', async () => {
+test('top-level mint prepares agentMintToken', async () => {
 	const workspace = await createTempWorkspace();
 	const envFile = await writeEnvFile(workspace);
 	const server = await startMockServer({
@@ -225,7 +225,7 @@ test('top-level mint prepares mintToken', async () => {
 
 		assert.equal(result.status, 0, result.stderr);
 		assert.equal(server.requests.length, 1);
-		assert.equal(server.requests[0].body.method, 'mintToken');
+		assert.equal(server.requests[0].body.method, 'agentMintToken');
 		assert.equal(server.requests[0].body.to, TEST_WALLET.address);
 		assert.equal(server.requests[0].body.amount, '100');
 	} finally {
@@ -234,7 +234,7 @@ test('top-level mint prepares mintToken', async () => {
 	}
 });
 
-test('top-level burn prepares burnToken', async () => {
+test('top-level burn prepares agentBurnToken', async () => {
 	const workspace = await createTempWorkspace();
 	const envFile = await writeEnvFile(workspace);
 	const server = await startMockServer({
@@ -271,7 +271,7 @@ test('top-level burn prepares burnToken', async () => {
 
 		assert.equal(result.status, 0, result.stderr);
 		assert.equal(server.requests.length, 1);
-		assert.equal(server.requests[0].body.method, 'burnToken');
+		assert.equal(server.requests[0].body.method, 'agentBurnToken');
 		assert.equal(server.requests[0].body.from, TEST_WALLET.address);
 		assert.equal(server.requests[0].body.amount, '25');
 	} finally {

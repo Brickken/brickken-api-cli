@@ -154,7 +154,7 @@ export function mapCreateTokenInput(input: RecordLike): RecordLike {
 	const basePayload = buildBasePayload(input);
 	return cleanObject({
 		...basePayload,
-		method: 'createToken',
+		method: 'agentCreateToken',
 		ownerEmail: input.ownerEmail || input.email,
 		name: input.name,
 		symbol: input.symbol || input.tokenSymbol,
@@ -169,7 +169,7 @@ export function mapMintTokenInput(input: RecordLike): RecordLike {
 	const basePayload = buildBasePayload(input);
 	return cleanObject({
 		...basePayload,
-		method: 'mintToken',
+		method: 'agentMintToken',
 		ownerEmail: input.ownerEmail || input.email,
 		tokenAddress: input.tokenAddress,
 		to: input.to || input.recipient || input.recipientAddress,
@@ -183,7 +183,7 @@ export function mapBurnTokenInput(input: RecordLike): RecordLike {
 	const basePayload = buildBasePayload(input);
 	return cleanObject({
 		...basePayload,
-		method: 'burnToken',
+		method: 'agentBurnToken',
 		ownerEmail: input.ownerEmail || input.email,
 		tokenAddress: input.tokenAddress,
 		from: input.from,
