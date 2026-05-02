@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import {
+	lookupTokenAddressFromSendResult,
 	mapBurnTokenInput,
 	mapCreateTokenInput,
 	mapMintTokenInput
@@ -34,7 +35,17 @@ export function registerTokenEconomicsCommands(program: Command): void {
 			command,
 			options,
 			label: 'Create token',
-			mapInput: mapCreateTokenInput
+			mapInput: mapCreateTokenInput,
+			afterExecute: async ({ config, body, result }) => {
+				if (!result?.sent) {
+					return result;
+				}
+
+				return {
+					...result,
+					...(await lookupTokenAddressFromSendResult(config, body, result.sent))
+				};
+			}
 		});
 	});
 

@@ -39,6 +39,7 @@ Example setup:
 export BASE_URL="https://api.sandbox.brickken.com"
 export CHAIN="11155111"
 export WALLET="0xYourWallet"
+export BRICKKEN_RPC_URL="https://ethereum-sepolia-rpc.publicnode.com"
 ```
 
 The CLI accepts chain identifiers as decimal or hex-like values. For example, Sepolia can be passed as `11155111` or `aa36a7`.
@@ -126,7 +127,13 @@ brickken create-token \
   --premint 1000 \
   --decimals 18 \
   --execute \
-  --json
+  --json | tee create-token-output.json
+```
+
+When `create-token --execute` succeeds, the CLI waits for the deployment receipt and adds `tokenAddress` to the JSON output. Sepolia has a built-in public RPC fallback; for other chains set `--rpc-url`, `BRICKKEN_RPC_URL`, or `BKN_RPC_URL`.
+
+```bash
+export TOKEN_ADDRESS="$(jq -r '.tokenAddress' create-token-output.json)"
 ```
 
 Mint more tokens:
@@ -221,6 +228,7 @@ Global flags:
 - `--env <sandbox|production>`
 - `--base-url <url>`
 - `--private-key <key>`
+- `--rpc-url <url>`
 - `--env-file <path>`
 - `--json`
 
@@ -228,6 +236,7 @@ Environment variables:
 
 - `BRICKKEN_PRIVATE_KEY` or `BKN_PRIVATE_KEY`
 - `BRICKKEN_BASE_URL` or `BKN_BASE_URL`
+- `BRICKKEN_RPC_URL` or `BKN_RPC_URL`
 - `BRICKKEN_ENV` or `BKN_ENV`
 
 The CLI automatically loads `.env` from the current working directory unless `--env-file` is provided.

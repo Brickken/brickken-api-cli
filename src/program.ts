@@ -29,6 +29,7 @@ export function buildProgram(): Command {
 		)
 		.option('--base-url <url>', 'Override the Brickken API base URL')
 		.option('--private-key <key>', 'Private key used for local signing and x402 payment flows')
+		.option('--rpc-url <url>', 'RPC URL used to wait for token deployment receipts')
 		.option('--env-file <path>', 'Optional env file to load before resolving config')
 		.option('--json', 'Print machine-readable JSON output');
 

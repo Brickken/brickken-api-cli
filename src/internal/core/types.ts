@@ -4,6 +4,7 @@ export interface ResolvedConfig {
 	env: BrickkenEnvironment;
 	baseUrl: string;
 	privateKey?: string;
+	rpcUrl?: string;
 	outputJson?: boolean;
 }
 

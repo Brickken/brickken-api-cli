@@ -12,6 +12,8 @@ const TEST_WALLET = Wallet.createRandom();
 const TEST_PRIVATE_KEY = TEST_WALLET.privateKey;
 const ALT_WALLET = Wallet.createRandom();
 const ALT_PRIVATE_KEY = ALT_WALLET.privateKey;
+const ERC20_TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+const ZERO_ADDRESS_TOPIC = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 function buildTransaction({ nonce, from = TEST_WALLET.address }) {
 	return {
@@ -54,6 +56,8 @@ function runCli(args, { cwd, env }) {
 				BKN_API_KEY: '',
 				BRICKKEN_PRIVATE_KEY: '',
 				BKN_PRIVATE_KEY: '',
+				BRICKKEN_RPC_URL: '',
+				BKN_RPC_URL: '',
 				...env
 			},
 			stdio: ['ignore', 'pipe', 'pipe']
@@ -131,6 +135,50 @@ async function startMockServer({ preparedResponse, sendResponse }) {
 	};
 }
 
+async function startRpcMockServer(receiptsByHash) {
+	const requests = [];
+
+	const server = http.createServer((req, res) => {
+		const chunks = [];
+
+		req.on('data', (chunk) => chunks.push(chunk));
+		req.on('end', () => {
+			const rawBody = Buffer.concat(chunks).toString('utf8');
+			const parsedBody = rawBody ? JSON.parse(rawBody) : undefined;
+			requests.push(parsedBody);
+
+			if (req.method === 'POST' && parsedBody?.method === 'eth_getTransactionReceipt') {
+				const txHash = parsedBody.params?.[0];
+				res.writeHead(200, { 'Content-Type': 'application/json' });
+				res.end(
+					JSON.stringify({
+						jsonrpc: '2.0',
+						id: parsedBody.id,
+						result: receiptsByHash[txHash] || null
+					})
+				);
+				return;
+			}
+
+			res.writeHead(404, { 'Content-Type': 'application/json' });
+			res.end(JSON.stringify({ error: 'not found' }));
+		});
+	});
+
+	await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+	const address = server.address();
+
+	return {
+		requests,
+		baseUrl: `http://127.0.0.1:${address.port}`,
+		async close() {
+			await new Promise((resolve, reject) => {
+				server.close((error) => (error ? reject(error) : resolve()));
+			});
+		}
+	};
+}
+
 test('top-level create-token prepares agentCreateToken and ignores API key environment variables', async () => {
 	const workspace = await createTempWorkspace();
 	const envFile = await writeEnvFile(workspace, 'BRICKKEN_API_KEY=from-env-file\nBKN_API_KEY=also-ignored\n');
@@ -182,6 +230,233 @@ test('top-level create-token prepares agentCreateToken and ignores API key envir
 		assert.equal(server.requests[0].body.chainId, 'aa36a7');
 		assert.equal(server.requests[0].body.ownerEmail, 'owner@example.com');
 		assert.equal(server.requests[0].body.symbol, 'RAGT');
+	} finally {
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('top-level create-token --execute waits for receipt and prints tokenAddress from transfer log', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace);
+	const txHash = `0x${'a'.repeat(64)}`;
+	const tokenAddress = '0x000000000000000000000000000000000000c0fe';
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xcreate-token-execute',
+			transactions: buildTransaction({ nonce: 12 })
+		},
+		sendResponse: {
+			success: true,
+			totalTransactions: 1,
+			successfulTransactions: 1,
+			failedTransactions: 0,
+			results: [
+				{
+					txId: '0xcreate-token-execute',
+					success: true,
+					result: {
+						txResponses: [{ hash: txHash }]
+					}
+				}
+			]
+		}
+	});
+	const rpc = await startRpcMockServer({
+		[txHash]: {
+			transactionHash: txHash,
+			blockHash: `0x${'b'.repeat(64)}`,
+			blockNumber: '0x2a',
+			status: '0x1',
+			contractAddress: null,
+			logs: [
+				{
+					address: tokenAddress,
+					topics: [ERC20_TRANSFER_TOPIC, ZERO_ADDRESS_TOPIC]
+				}
+			]
+		}
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'create-token',
+				'--chain',
+				'11155111',
+				'--owner-email',
+				'owner@example.com',
+				'--signer-address',
+				TEST_WALLET.address,
+				'--name',
+				'Research Agent Token',
+				'--symbol',
+				'RAGT',
+				'--agent-wallet',
+				TEST_WALLET.address,
+				'--premint',
+				'1000',
+				'--decimals',
+				'18',
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl,
+				'--rpc-url',
+				rpc.baseUrl,
+				'--execute'
+			],
+			{
+				cwd: workspace,
+				env: { BRICKKEN_PRIVATE_KEY: TEST_PRIVATE_KEY }
+			}
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+		assert.equal(server.requests.length, 2);
+		assert.equal(rpc.requests.length, 1);
+
+		const output = JSON.parse(result.stdout);
+		assert.equal(output.tokenAddress, tokenAddress);
+		assert.equal(output.tokenTxHash, txHash);
+		assert.equal(output.tokenReceipt.transactionHash, txHash);
+	} finally {
+		await rpc.close();
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('top-level create-token --execute falls back to receipt contractAddress', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace);
+	const txHash = `0x${'c'.repeat(64)}`;
+	const tokenAddress = '0x000000000000000000000000000000000000babe';
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xcreate-token-contract-address',
+			transactions: buildTransaction({ nonce: 13 })
+		},
+		sendResponse: {
+			success: true,
+			totalTransactions: 1,
+			successfulTransactions: 1,
+			failedTransactions: 0,
+			txHash
+		}
+	});
+	const rpc = await startRpcMockServer({
+		[txHash]: {
+			transactionHash: txHash,
+			blockHash: `0x${'d'.repeat(64)}`,
+			blockNumber: '0x2b',
+			status: '0x1',
+			contractAddress: tokenAddress,
+			logs: []
+		}
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'create-token',
+				'--chain',
+				'11155111',
+				'--owner-email',
+				'owner@example.com',
+				'--signer-address',
+				TEST_WALLET.address,
+				'--name',
+				'Research Agent Token',
+				'--symbol',
+				'RAGT',
+				'--agent-wallet',
+				TEST_WALLET.address,
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl,
+				'--rpc-url',
+				rpc.baseUrl,
+				'--execute'
+			],
+			{
+				cwd: workspace,
+				env: { BRICKKEN_PRIVATE_KEY: TEST_PRIVATE_KEY }
+			}
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+
+		const output = JSON.parse(result.stdout);
+		assert.equal(output.tokenAddress, tokenAddress);
+		assert.equal(output.tokenTxHash, txHash);
+	} finally {
+		await rpc.close();
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('top-level create-token --execute succeeds with diagnostic when no RPC is configured for chain', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace);
+	const txHash = `0x${'e'.repeat(64)}`;
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xcreate-token-no-rpc',
+			transactions: buildTransaction({ nonce: 14 })
+		},
+		sendResponse: {
+			success: true,
+			totalTransactions: 1,
+			successfulTransactions: 1,
+			failedTransactions: 0,
+			results: [
+				{
+					txId: '0xcreate-token-no-rpc',
+					success: true,
+					txHash
+				}
+			]
+		}
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'create-token',
+				'--chain',
+				'999999',
+				'--owner-email',
+				'owner@example.com',
+				'--signer-address',
+				TEST_WALLET.address,
+				'--name',
+				'Research Agent Token',
+				'--symbol',
+				'RAGT',
+				'--agent-wallet',
+				TEST_WALLET.address,
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl,
+				'--execute'
+			],
+			{
+				cwd: workspace,
+				env: { BRICKKEN_PRIVATE_KEY: TEST_PRIVATE_KEY }
+			}
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+
+		const output = JSON.parse(result.stdout);
+		assert.equal(output.tokenAddress, undefined);
+		assert.equal(output.tokenAddressLookup.status, 'skipped');
+		assert.equal(output.tokenAddressLookup.txHashes[0], txHash);
+		assert.match(output.tokenAddressLookup.message, /No RPC URL is configured/);
 	} finally {
 		await server.close();
 		await fs.rm(workspace, { recursive: true, force: true });

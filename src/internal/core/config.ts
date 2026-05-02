@@ -51,6 +51,7 @@ export function resolveConfigFromEnv(): ResolvedConfig {
 	return {
 		env,
 		baseUrl,
-		privateKey: process.env.BRICKKEN_PRIVATE_KEY || process.env.BKN_PRIVATE_KEY
+		privateKey: process.env.BRICKKEN_PRIVATE_KEY || process.env.BKN_PRIVATE_KEY,
+		rpcUrl: process.env.BRICKKEN_RPC_URL || process.env.BKN_RPC_URL
 	};
 }

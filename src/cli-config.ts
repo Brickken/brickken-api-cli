@@ -15,6 +15,7 @@ export interface GlobalCliOptions {
 	env?: BrickkenEnvironment;
 	baseUrl?: string;
 	privateKey?: string;
+	rpcUrl?: string;
 	envFile?: string;
 	json?: boolean;
 }
@@ -69,6 +70,7 @@ export function resolveCliConfig(command: Command): ResolvedConfig & { outputJso
 		baseUrl,
 		privateKey:
 			options.privateKey || process.env.BRICKKEN_PRIVATE_KEY || process.env.BKN_PRIVATE_KEY,
+		rpcUrl: options.rpcUrl || process.env.BRICKKEN_RPC_URL || process.env.BKN_RPC_URL,
 		outputJson: Boolean(options.json)
 	};
 }

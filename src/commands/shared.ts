@@ -9,6 +9,12 @@ type JsonMethod = 'GET' | 'POST' | 'PATCH';
 
 type Mapper = (input: Record<string, any>) => Record<string, any>;
 type QueryBuilder = (input: Record<string, any>) => Record<string, any>;
+type AfterExecute = (params: {
+	config: ResolvedConfig;
+	body: Record<string, any>;
+	prepared: any;
+	result: any;
+}) => Promise<any>;
 
 const DEFAULT_EXCLUDED_OPTIONS = ['file', 'execute'];
 
@@ -54,6 +60,7 @@ export async function runPrepareCommand(params: {
 	options: Record<string, any>;
 	label: string;
 	mapInput: Mapper;
+	afterExecute?: AfterExecute;
 }): Promise<void> {
 	const config = resolveCliConfig(params.command);
 	const commandInput = await buildCommandInput(params.options);
@@ -65,9 +72,18 @@ export async function runPrepareCommand(params: {
 		data: body
 	});
 
-	const result = params.options.execute
+	let result = params.options.execute
 		? await executePreparedResponse(config, body, prepared)
 		: prepared;
+
+	if (params.options.execute && params.afterExecute) {
+		result = await params.afterExecute({
+			config,
+			body,
+			prepared,
+			result
+		});
+	}
 
 	printResult(result, config, params.label);
 	if (hasLogicalFailure(result)) {

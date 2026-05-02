@@ -31,6 +31,20 @@ export {
 	decodePaymentResponse,
 	attachX402Metadata
 } from './x402';
+export {
+	extractSendTransactionHashes,
+	extractTokenAddressFromReceipt,
+	lookupTokenAddressFromSendResult,
+	resolveReceiptRpcUrl,
+	waitForTransactionReceipt
+} from './receipts';
+export type {
+	ReceiptSummary,
+	TokenAddressLookupDiagnostic,
+	TokenAddressLookupResult,
+	TransactionReceipt,
+	TransactionReceiptLog
+} from './receipts';
 export type {
 	ResolvedConfig,
 	BrickkenEnvironment,

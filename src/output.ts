@@ -65,6 +65,7 @@ function formatHumanReadable(result: any, label?: string): string {
 			appendX402Summary(lines, result.sent);
 		}
 
+		appendTokenAddressSummary(lines, result);
 		lines.push(JSON.stringify(result, null, 2));
 		return lines.join('\n');
 	}
@@ -134,6 +135,22 @@ function appendX402Summary(lines: string[], result: any): void {
 	lines.push(`Payment network: ${x402.requirement.network}`);
 	if (x402.settlement?.transaction) {
 		lines.push(`Settlement tx: ${x402.settlement.transaction}`);
+	}
+}
+
+function appendTokenAddressSummary(lines: string[], result: any): void {
+	if (result?.tokenAddress) {
+		lines.push(`Token address: ${result.tokenAddress}`);
+		if (result.tokenTxHash) {
+			lines.push(`Token tx: ${result.tokenTxHash}`);
+		}
+		return;
+	}
+
+	if (result?.tokenAddressLookup?.message) {
+		lines.push(
+			`Token address lookup: ${result.tokenAddressLookup.status} (${result.tokenAddressLookup.message})`
+		);
 	}
 }
 
