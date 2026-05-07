@@ -1,9 +1,12 @@
 import { Command } from 'commander';
 import {
 	lookupTokenAddressFromSendResult,
+	mapApproveTokenInput,
 	mapBurnTokenInput,
 	mapCreateTokenInput,
-	mapMintTokenInput
+	mapMintTokenInput,
+	mapTransferFromTokenInput,
+	mapTransferTokenInput
 } from '../internal/core';
 import { runPrepareCommand, withExecuteOption, withFileOption } from './shared';
 
@@ -91,6 +94,76 @@ export function registerTokenEconomicsCommands(program: Command): void {
 			options,
 			label: 'Burn token',
 			mapInput: mapBurnTokenInput
+		});
+	});
+
+	withExecuteOption(
+		withFileOption(
+			withEconomicsBaseOptions(
+				program.command('transfer')
+					.description('Prepare or execute an agentic token transfer')
+					.option('--owner-email <email>', 'Tokenizer owner email')
+					.option('--email <email>', 'Alias for --owner-email')
+					.option('--token-address <address>', 'ERC-20 token address')
+					.option('--to <address>', 'Recipient wallet address')
+					.option('--recipient-address <address>', 'Alias for --to')
+					.option('--amount <amount>', 'Human-readable token amount')
+					.option('--decimals <value>', 'Token decimals')
+			)
+		)
+	).action(async (options, command) => {
+		await runPrepareCommand({
+			command,
+			options,
+			label: 'Transfer token',
+			mapInput: mapTransferTokenInput
+		});
+	});
+
+	withExecuteOption(
+		withFileOption(
+			withEconomicsBaseOptions(
+				program.command('transfer-from')
+					.description('Prepare or execute an agentic token transferFrom')
+					.option('--owner-email <email>', 'Tokenizer owner email')
+					.option('--email <email>', 'Alias for --owner-email')
+					.option('--token-address <address>', 'ERC-20 token address')
+					.option('--from <address>', 'Source wallet address')
+					.option('--to <address>', 'Recipient wallet address')
+					.option('--recipient-address <address>', 'Alias for --to')
+					.option('--amount <amount>', 'Human-readable token amount')
+					.option('--decimals <value>', 'Token decimals')
+			)
+		)
+	).action(async (options, command) => {
+		await runPrepareCommand({
+			command,
+			options,
+			label: 'Transfer token from allowance',
+			mapInput: mapTransferFromTokenInput
+		});
+	});
+
+	withExecuteOption(
+		withFileOption(
+			withEconomicsBaseOptions(
+				program.command('approve')
+					.description('Prepare or execute an agentic token approval')
+					.option('--owner-email <email>', 'Tokenizer owner email')
+					.option('--email <email>', 'Alias for --owner-email')
+					.option('--token-address <address>', 'ERC-20 token address')
+					.option('--spender-address <address>', 'Spender wallet address')
+					.option('--spender <address>', 'Alias for --spender-address')
+					.option('--amount <amount>', 'Human-readable token amount')
+					.option('--decimals <value>', 'Token decimals')
+			)
+		)
+	).action(async (options, command) => {
+		await runPrepareCommand({
+			command,
+			options,
+			label: 'Approve token allowance',
+			mapInput: mapApproveTokenInput
 		});
 	});
 }

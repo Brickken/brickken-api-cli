@@ -193,6 +193,49 @@ export function mapBurnTokenInput(input: RecordLike): RecordLike {
 	});
 }
 
+export function mapTransferTokenInput(input: RecordLike): RecordLike {
+	const basePayload = buildBasePayload(input);
+	return cleanObject({
+		...basePayload,
+		method: 'agentTransferToken',
+		ownerEmail: input.ownerEmail || input.email,
+		tokenAddress: input.tokenAddress,
+		to: input.to || input.recipient || input.recipientAddress,
+		amount: input.amount,
+		decimals: input.decimals,
+		gasLimit: input.gasLimit
+	});
+}
+
+export function mapTransferFromTokenInput(input: RecordLike): RecordLike {
+	const basePayload = buildBasePayload(input);
+	return cleanObject({
+		...basePayload,
+		method: 'agentTransferFromToken',
+		ownerEmail: input.ownerEmail || input.email,
+		tokenAddress: input.tokenAddress,
+		from: input.from,
+		to: input.to || input.recipient || input.recipientAddress,
+		amount: input.amount,
+		decimals: input.decimals,
+		gasLimit: input.gasLimit
+	});
+}
+
+export function mapApproveTokenInput(input: RecordLike): RecordLike {
+	const basePayload = buildBasePayload(input);
+	return cleanObject({
+		...basePayload,
+		method: 'agentApproveToken',
+		ownerEmail: input.ownerEmail || input.email,
+		tokenAddress: input.tokenAddress,
+		spenderAddress: input.spenderAddress || input.spender,
+		amount: input.amount,
+		decimals: input.decimals,
+		gasLimit: input.gasLimit
+	});
+}
+
 export function mapAgentGiveFeedbackInput(input: RecordLike): RecordLike {
 	const basePayload = buildBasePayload(input);
 	return cleanObject({
@@ -249,12 +292,22 @@ export function prepareBodyForMethod(method: string, input: RecordLike): RecordL
 			return mapAgentSetMetadataInput(input);
 		case 'agentSetWallet':
 			return mapAgentSetWalletInput(input);
+		case 'agentCreateToken':
 		case 'createToken':
 			return mapCreateTokenInput(input);
+		case 'agentMintToken':
 		case 'mintToken':
 			return mapMintTokenInput(input);
+		case 'agentBurnToken':
 		case 'burnToken':
 			return mapBurnTokenInput(input);
+		case 'agentTransferToken':
+			return mapTransferTokenInput(input);
+		case 'agentTransferFromToken':
+			return mapTransferFromTokenInput(input);
+		case 'agentApprove':
+		case 'agentApproveToken':
+			return mapApproveTokenInput(input);
 		case 'agentGiveFeedback':
 			return mapAgentGiveFeedbackInput(input);
 		case 'agentRevokeFeedback':

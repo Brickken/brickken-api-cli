@@ -6,7 +6,7 @@ It covers:
 
 - ERC-8004 agent identity operations
 - ERC-8004 reputation feedback operations
-- x402-capable agentic token create, mint, and burn operations
+- x402-capable agentic token create, mint, burn, transfer, transfer-from, and approve operations
 - raw transaction preparation, signing, sending, and one-shot execution
 
 Repository: https://github.com/Brickken/brickken-api-cli
@@ -33,6 +33,8 @@ The high-level commands are wallet-first and prepare-only by default. Add `--exe
 
 Agentic operations do not require a tokenizer user in the Brickken database. `--owner-email` is optional metadata and can be omitted.
 
+For a QA-oriented terminal walkthrough, see [QA_TERMINAL_DEMO.md](QA_TERMINAL_DEMO.md).
+
 Example setup:
 
 ```bash
@@ -43,6 +45,31 @@ export BRICKKEN_RPC_URL="https://ethereum-sepolia-rpc.publicnode.com"
 ```
 
 The CLI accepts chain identifiers as decimal or hex-like values. For example, Sepolia can be passed as `11155111` or `aa36a7`.
+
+Sanity checks:
+
+```bash
+brickken --version
+test -n "$BRICKKEN_PRIVATE_KEY" && echo "private key ok" || echo "private key missing"
+test -n "$BRICKKEN_RPC_URL" && echo "rpc ok" || echo "rpc missing"
+command -v jq
+```
+
+## Environment Notes
+
+- Prefer `sandbox` or another environment with agent persistence enabled for the full `register -> set-uri -> set-metadata` flow.
+- Internal development environments such as `stage2` may accept `register` on-chain but fail later profile mutations if the backend does not persist or index the returned `agentUuid`.
+- Public explorers such as 8004scan may not index non-public environments even when the on-chain transaction succeeded.
+- Budget Sepolia USDC accordingly. A full QA run with retries can consume roughly `0.02 USDC` per executed command because both prepare and send are x402-priced.
+
+## Input Safety
+
+The CLI supports `--json`. When a command appears to "drop" fields, the usual cause is shell expansion, empty variables, or inline JSON quoting, not the JSON output flag itself.
+
+- Quote every variable that can contain spaces.
+- Prefer `--file` for nested JSON, long text, automation, or values assembled by shell scripts.
+- Echo critical variables such as `AGENT_UUID` and `TOKEN_ADDRESS` before reusing them in the next command.
+- Do not continue from `create-token` into `mint` or `burn` unless `tokenAddress` is present in the output.
 
 ## Agent Flow
 
@@ -113,6 +140,27 @@ brickken agent set-metadata \
   --json
 ```
 
+For more complex metadata payloads, prefer a file:
+
+```bash
+cat > metadata.json <<'EOF'
+{
+  "chain": "11155111",
+  "signerAddress": "0xYourWallet",
+  "agentUuid": "00000000-0000-0000-0000-000000000000",
+  "metadataKey": "capabilities",
+  "metadataValue": "{\"tasks\":[\"research\",\"summarization\",\"token-operations\"]}",
+  "metadataEncoding": "json"
+}
+EOF
+
+brickken tx prepare \
+  --method agentSetMetadata \
+  --file metadata.json \
+  --execute \
+  --json
+```
+
 ## Token Flow
 
 Deploy an agentic token through the high-level command:
@@ -164,7 +212,50 @@ brickken burn \
   --json
 ```
 
-The high-level `create-token`, `mint`, and `burn` commands use the agentic backend methods `agentCreateToken`, `agentMintToken`, and `agentBurnToken`.
+Approve allowance:
+
+```bash
+brickken approve \
+  --chain "$CHAIN" \
+  --signer-address "$WALLET" \
+  --token-address 0xDeployedAgentToken \
+  --spender-address 0xSpenderWallet \
+  --amount 50 \
+  --decimals 18 \
+  --execute \
+  --json
+```
+
+Transfer tokens:
+
+```bash
+brickken transfer \
+  --chain "$CHAIN" \
+  --signer-address "$WALLET" \
+  --token-address 0xDeployedAgentToken \
+  --to 0xRecipientWallet \
+  --amount 10 \
+  --decimals 18 \
+  --execute \
+  --json
+```
+
+Transfer through allowance:
+
+```bash
+brickken transfer-from \
+  --chain "$CHAIN" \
+  --signer-address 0xApprovedSpenderWallet \
+  --token-address 0xDeployedAgentToken \
+  --from 0xTokenHolderWallet \
+  --to 0xRecipientWallet \
+  --amount 5 \
+  --decimals 18 \
+  --execute \
+  --json
+```
+
+The high-level `create-token`, `mint`, `burn`, `transfer`, `transfer-from`, and `approve` commands use the agentic backend methods `agentCreateToken`, `agentMintToken`, `agentBurnToken`, `agentTransferToken`, `agentTransferFromToken`, and `agentApproveToken`.
 
 ## Command Groups
 
@@ -172,6 +263,9 @@ The high-level `create-token`, `mint`, and `burn` commands use the agentic backe
 - `brickken create-token`: deploy an agentic ERC-20 through the x402 flow
 - `brickken mint`: mint an agentic ERC-20 through the x402 flow
 - `brickken burn`: burn an agentic ERC-20 through the x402 flow
+- `brickken approve`: approve ERC-20 allowance through the x402 flow
+- `brickken transfer`: transfer ERC-20 tokens through the x402 flow
+- `brickken transfer-from`: transfer ERC-20 allowance through the x402 flow
 - `brickken tx`: raw prepare, sign, send, status, and one-shot execute flows
 
 ## Raw Transaction Flow
@@ -187,6 +281,16 @@ brickken tx prepare \
   --execute \
   --json
 ```
+
+Supported agentic token methods include:
+
+- `agentCreateToken`
+- `agentMintToken`
+- `agentBurnToken`
+- `agentTransferToken`
+- `agentTransferFromToken`
+- `agentApproveToken`
+- `agentApprove` as a CLI alias that normalizes to `agentApproveToken`
 
 For manual control:
 

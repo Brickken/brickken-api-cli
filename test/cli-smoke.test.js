@@ -555,6 +555,148 @@ test('top-level burn prepares agentBurnToken', async () => {
 	}
 });
 
+test('top-level transfer prepares agentTransferToken', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace);
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xtransfer-token',
+			transactions: buildTransaction({ nonce: 15 })
+		},
+		sendResponse: { success: true }
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'transfer',
+				'--chain',
+				'11155111',
+				'--signer-address',
+				TEST_WALLET.address,
+				'--token-address',
+				'0x000000000000000000000000000000000000beef',
+				'--recipient-address',
+				ALT_WALLET.address,
+				'--amount',
+				'10',
+				'--decimals',
+				'18',
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl
+			],
+			{ cwd: workspace, env: {} }
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+		assert.equal(server.requests.length, 1);
+		assert.equal(server.requests[0].body.method, 'agentTransferToken');
+		assert.equal(server.requests[0].body.to, ALT_WALLET.address);
+		assert.equal(server.requests[0].body.amount, '10');
+		assert.equal(server.requests[0].body.decimals, '18');
+	} finally {
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('top-level transfer-from prepares agentTransferFromToken', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace);
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xtransfer-from-token',
+			transactions: buildTransaction({ nonce: 16 })
+		},
+		sendResponse: { success: true }
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'transfer-from',
+				'--chain',
+				'11155111',
+				'--signer-address',
+				TEST_WALLET.address,
+				'--token-address',
+				'0x000000000000000000000000000000000000beef',
+				'--from',
+				TEST_WALLET.address,
+				'--to',
+				ALT_WALLET.address,
+				'--amount',
+				'12',
+				'--decimals',
+				'18',
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl
+			],
+			{ cwd: workspace, env: {} }
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+		assert.equal(server.requests.length, 1);
+		assert.equal(server.requests[0].body.method, 'agentTransferFromToken');
+		assert.equal(server.requests[0].body.from, TEST_WALLET.address);
+		assert.equal(server.requests[0].body.to, ALT_WALLET.address);
+		assert.equal(server.requests[0].body.amount, '12');
+	} finally {
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('top-level approve prepares agentApproveToken', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace);
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xapprove-token',
+			transactions: buildTransaction({ nonce: 17 })
+		},
+		sendResponse: { success: true }
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'approve',
+				'--chain',
+				'11155111',
+				'--signer-address',
+				TEST_WALLET.address,
+				'--token-address',
+				'0x000000000000000000000000000000000000beef',
+				'--spender',
+				ALT_WALLET.address,
+				'--amount',
+				'40',
+				'--decimals',
+				'18',
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl
+			],
+			{ cwd: workspace, env: {} }
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+		assert.equal(server.requests.length, 1);
+		assert.equal(server.requests[0].body.method, 'agentApproveToken');
+		assert.equal(server.requests[0].body.spenderAddress, ALT_WALLET.address);
+		assert.equal(server.requests[0].body.amount, '40');
+	} finally {
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
 test('legacy command groups and old agent economics aliases are unavailable', async () => {
 	const workspace = await createTempWorkspace();
 
@@ -622,6 +764,56 @@ test('tx prepare without --execute only prepares the transaction', async () => {
 		const output = JSON.parse(result.stdout);
 		assert.equal(output.txId, '0xprepare-only');
 		assert.equal(output.info.agentUuid, 'agent-uuid-1');
+	} finally {
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('tx prepare remaps agentApprove alias to agentApproveToken payload', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace);
+	const inputFile = await writeJsonFile(workspace, 'approve.json', {
+		chainId: '11155111',
+		signerAddress: TEST_WALLET.address,
+		tokenAddress: '0x000000000000000000000000000000000000beef',
+		spenderAddress: ALT_WALLET.address,
+		amount: '50',
+		decimals: 18
+	});
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xapprove-prepare',
+			transactions: buildTransaction({ nonce: 18 }),
+			info: { method: 'agentApproveToken' }
+		},
+		sendResponse: { success: true }
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'tx',
+				'prepare',
+				'--method',
+				'agentApprove',
+				'--file',
+				inputFile,
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl
+			],
+			{ cwd: workspace, env: {} }
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+		assert.equal(server.requests.length, 1);
+		assert.equal(server.requests[0].body.method, 'agentApproveToken');
+		assert.equal(server.requests[0].body.spenderAddress, ALT_WALLET.address);
+
+		const output = JSON.parse(result.stdout);
+		assert.equal(output.txId, '0xapprove-prepare');
 	} finally {
 		await server.close();
 		await fs.rm(workspace, { recursive: true, force: true });
