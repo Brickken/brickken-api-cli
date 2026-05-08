@@ -58,7 +58,6 @@ command -v jq
 ## Environment Notes
 
 - Prefer `sandbox` or another environment with agent persistence enabled for the full `register -> set-uri -> set-metadata` flow.
-- Internal development environments such as `stage2` may accept `register` on-chain but fail later profile mutations if the backend does not persist or index the returned `agentUuid`.
 - Public explorers such as 8004scan may not index non-public environments even when the on-chain transaction succeeded.
 - Budget Sepolia USDC accordingly. A full QA run with retries can consume roughly `0.02 USDC` per executed command because both prepare and send are x402-priced.
 
