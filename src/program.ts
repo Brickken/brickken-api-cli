@@ -4,6 +4,7 @@ import { Command, Option } from 'commander';
 import { registerTxCommands } from './commands/tx';
 import { registerAgentCommands } from './commands/agent';
 import { registerTokenEconomicsCommands } from './commands/economics';
+import { registerSkillCommands } from './commands/skill';
 
 function getPackageVersion(): string {
 	try {
@@ -36,6 +37,7 @@ export function buildProgram(): Command {
 	registerAgentCommands(program);
 	registerTokenEconomicsCommands(program);
 	registerTxCommands(program);
+	registerSkillCommands(program);
 
 	return program;
 }

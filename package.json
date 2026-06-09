@@ -25,7 +25,8 @@
 		"brickken": "dist/index.js"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"skills"
 	],
 	"scripts": {
 		"build": "tsc --project tsconfig.json",

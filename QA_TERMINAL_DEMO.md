@@ -18,7 +18,7 @@ The demo covers:
 
 Before starting, make sure QA has all of the following:
 
-- `brickken-cli` installed locally
+- `brickken-cli` installed globally or otherwise reachable on `PATH`
 - `jq` installed locally
 - a wallet private key exported as `BRICKKEN_PRIVATE_KEY`
 - the matching wallet address available
@@ -27,9 +27,9 @@ Before starting, make sure QA has all of the following:
 - the API base URL for the environment under test
 - a working RPC URL for the chain under test
 
-This demo is x402-based. Do not use or export API keys.
+This demo is x402-based. Do not use or export API keys. `BRICKKEN_API_KEY` and `BKN_API_KEY` are ignored by the CLI.
 
-Budget enough Sepolia USDC for prepare and send charges. For the full extended flow below, keep at least `0.25 USDC` available to absorb retries.
+Budget Sepolia USDC for prepare and send charges. Each executed command can consume roughly `0.02 USDC` because both prepare and send are x402-priced. For the full extended flow below, keep at least `0.25 USDC` available to absorb retries.
 
 ## Recommended CLI Version
 
@@ -40,9 +40,18 @@ npm install -g brickken-cli@latest
 brickken --version
 ```
 
-Use a version that already includes the top-level `create-token`, `mint`, `burn`, `approve`, `transfer`, and `transfer-from` commands.
+Use `0.4.5` or newer. This version includes the top-level `create-token`, `mint`, `burn`, `approve`, `transfer`, and `transfer-from` commands.
 
 If the CLI is older, top-level token commands may still call legacy non-agentic methods and return `401 API key is required for this method`.
+
+If `brickken --version` still prints an older version after installing, check which binary your shell is using:
+
+```bash
+command -v brickken
+npm ls -g brickken-cli --depth=0
+```
+
+When using `nvm`, global packages are installed per Node.js version. Re-run `npm install -g brickken-cli@latest` after switching Node versions with `nvm use`.
 
 ## Environment Setup
 
@@ -76,6 +85,9 @@ Sanity checks:
 
 ```bash
 brickken --version
+brickken approve --help >/dev/null
+brickken transfer --help >/dev/null
+brickken transfer-from --help >/dev/null
 test -n "$BRICKKEN_PRIVATE_KEY" && echo "private key ok" || echo "private key missing"
 test -n "$BRICKKEN_RPC_URL" && echo "rpc ok" || echo "rpc missing"
 command -v jq
@@ -84,7 +96,7 @@ command -v jq
 Environment note:
 
 - Prefer `sandbox` or another environment with agent persistence enabled for the full agent flow.
-- Some internal environments such as `stage2` can accept `agent register` on-chain but fail `set-uri` or `set-metadata` later if the backend does not persist the returned `agentUuid`.
+- Some non-persistent development environments can accept `agent register` on-chain but fail `set-uri` or `set-metadata` later if the backend cannot resolve the returned `agentUuid`.
 - Public explorers such as 8004scan may not index internal development environments.
 
 Input safety:

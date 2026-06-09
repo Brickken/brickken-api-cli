@@ -1,0 +1,4 @@
+interface:
+  display_name: "Brickken"
+  short_description: "Use Brickken APIs, CLI, and MCP"
+  default_prompt: "Use $brickken to plan and execute a Brickken API, CLI, or MCP workflow."

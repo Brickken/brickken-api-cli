@@ -46,6 +46,15 @@ async function writeEnvFile(workspace, content = '') {
 	return filePath;
 }
 
+async function fileExists(filePath) {
+	try {
+		await fs.access(filePath);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 function runCli(args, { cwd, env }) {
 	return new Promise((resolve, reject) => {
 		const child = spawn(process.execPath, [CLI_PATH, '--json', ...args], {
@@ -232,6 +241,45 @@ test('top-level create-token prepares agentCreateToken and ignores API key envir
 		assert.equal(server.requests[0].body.symbol, 'RAGT');
 	} finally {
 		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('skill path prints the bundled Brickken skill path', async () => {
+	const workspace = await createTempWorkspace();
+
+	try {
+		const result = await runCli(['skill', 'path'], { cwd: workspace, env: {} });
+		assert.equal(result.status, 0, result.stderr);
+
+		const output = JSON.parse(result.stdout);
+		assert.equal(output.skill, 'brickken');
+		assert.match(output.path, /skills[\\/]brickken$/);
+
+		const skillFile = path.join(output.path, 'SKILL.md');
+		assert.equal(await fileExists(skillFile), true);
+	} finally {
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('skill install copies the bundled Brickken skill to the target directory', async () => {
+	const workspace = await createTempWorkspace();
+	const skillsDirectory = path.join(workspace, 'skills');
+
+	try {
+		const result = await runCli(
+			['skill', 'install', '--path', skillsDirectory],
+			{ cwd: workspace, env: {} }
+		);
+		assert.equal(result.status, 0, result.stderr);
+
+		const output = JSON.parse(result.stdout);
+		assert.equal(output.skill, 'brickken');
+		assert.equal(output.targetPath, path.join(skillsDirectory, 'brickken'));
+		assert.equal(await fileExists(path.join(output.targetPath, 'SKILL.md')), true);
+		assert.equal(await fileExists(path.join(output.targetPath, 'references', 'cli.md')), true);
+	} finally {
 		await fs.rm(workspace, { recursive: true, force: true });
 	}
 });

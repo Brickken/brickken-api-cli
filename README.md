@@ -17,6 +17,28 @@ Repository: https://github.com/Brickken/brickken-api-cli
 npm install -g brickken-cli
 ```
 
+## AI Agent Skill
+
+The npm package includes the Brickken Codex skill at `skills/brickken`.
+
+Install it into the default Codex skills directory:
+
+```bash
+brickken skill install
+```
+
+Install it into a custom skills directory:
+
+```bash
+brickken skill install --path ~/.codex/skills --force
+```
+
+Print the bundled skill path:
+
+```bash
+brickken skill path
+```
+
 ## Authentication
 
 The CLI is x402-only. Do not pass or export API keys; `BRICKKEN_API_KEY` and `BKN_API_KEY` are ignored.
