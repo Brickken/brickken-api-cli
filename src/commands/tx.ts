@@ -7,6 +7,7 @@ import {
 	runLocalSigningCommand,
 	runPrepareCommand,
 	withExecuteOption,
+	withExecutionModeOption,
 	withFileOption
 } from './shared';
 
@@ -14,12 +15,14 @@ export function registerTxCommands(program: Command): void {
 	const tx = program.command('tx').description('Access raw Brickken API V2 transaction flows');
 
 	withExecuteOption(
-		withFileOption(
-			tx.command('prepare')
-				.description('Prepare raw Brickken transactions, or execute them with --execute')
-				.requiredOption('--method <method>', 'Brickken transaction method')
-				.option('--chain <chain>', 'Chain identifier')
-				.option('--signer-address <address>', 'Signer wallet address')
+		withExecutionModeOption(
+			withFileOption(
+				tx.command('prepare')
+					.description('Prepare raw Brickken transactions, or execute them with --execute')
+					.requiredOption('--method <method>', 'Brickken transaction method')
+					.option('--chain <chain>', 'Chain identifier')
+					.option('--signer-address <address>', 'Signer wallet address')
+			)
 		)
 	).action(async (options, command) => {
 		await runPrepareCommand({
@@ -55,6 +58,13 @@ export function registerTxCommands(program: Command): void {
 			mapInput: (input) => {
 				const txIds = input.txId;
 				const signedTransactions = input.signedTx || input.signedTransactions;
+
+				if (input.transactions) {
+					return {
+						txId: Array.isArray(input.txId) ? input.txId[0] : input.txId,
+						transactions: input.transactions
+					};
+				}
 
 				if (Array.isArray(txIds) && txIds.length === 1 && Array.isArray(signedTransactions) && signedTransactions.length === 1) {
 					return {

@@ -1,0 +1,137 @@
+{
+  "prepared": {
+    "transactions": [
+      {
+        "from": "0xED2f2CC6f05c847858CE249db483079087CDa578",
+        "to": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+        "value": "0x00",
+        "nonce": 42,
+        "chainId": 11155111,
+        "data": "0x0af28bd3000000000000000000000000000000000000000000000000000000000000112600000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000035697066733a2f2f516d64417754335a514c4a4866587469454c6e59614c47763570356d3734434b314c68647a4d3561534b536734780000000000000000000000",
+        "type": 2,
+        "maxPriorityFeePerGas": "1149989",
+        "maxFeePerGas": "1150109",
+        "gasLimit": "0x01bade"
+      }
+    ],
+    "txId": "0x793f3e28f79650e9da207f86bcb3dba5adcc4a39f3e601324292e62276dc5a9b",
+    "info": {
+      "agentUuid": "54399c6e-ffb4-4bd4-90ab-61c96fadc060",
+      "agentId": "4390",
+      "agentURI": "ipfs://QmdAwT3ZQLJHfXtiELnYaLGv5p5m74CK1LhdzM5aSKSg4x",
+      "registrations": [
+        {
+          "agentId": 4390,
+          "agentRegistry": "eip155:11155111:0x8004A818BFB912233c491871b3d84c89A494BD9e"
+        }
+      ]
+    },
+    "_x402": {
+      "payerAddress": "0xED2f2CC6f05c847858CE249db483079087CDa578",
+      "requirement": {
+        "scheme": "exact",
+        "network": "eip155:11155111",
+        "asset": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+        "amount": "10000",
+        "payTo": "0xB610470ae0fEa78A1B27cD3F0D4011eb5361fAf1",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "name": "USDC",
+          "version": "2",
+          "tokenSymbol": "USDC",
+          "displayPrice": "0.01 USDC",
+          "assetTransferMethod": "eip3009",
+          "chainId": "11155111",
+          "paymentChainId": "11155111",
+          "operationChainId": "11155111",
+          "routeKey": "POST /prepare-transactions"
+        }
+      },
+      "settlement": {
+        "success": true,
+        "transaction": "0x9d2ca35de3d1444ba42121e32430c16477f9351a4f680bae296abb1a429a60f4",
+        "network": "eip155:11155111",
+        "payer": "0xED2f2CC6f05c847858CE249db483079087CDa578"
+      }
+    }
+  },
+  "signerAddress": "0xED2f2CC6f05c847858CE249db483079087CDa578",
+  "signedTransactions": [
+    "0x02f9011183aa36a72a83118c2583118c9d8301bade948004a818bfb912233c491871b3d84c89a494bd9e80b8a40af28bd3000000000000000000000000000000000000000000000000000000000000112600000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000035697066733a2f2f516d64417754335a514c4a4866587469454c6e59614c47763570356d3734434b314c68647a4d3561534b536734780000000000000000000000c080a092d8888a630f7bbb06dcbc147aff0dec12a42b301593ec5a85e6bacf8e479c10a0485f12674e9a13a3c411087a81599bb4264f1b64fb62d0b1038854eddb2c6eba"
+  ],
+  "sent": {
+    "success": true,
+    "totalTransactions": 1,
+    "successfulTransactions": 1,
+    "failedTransactions": 0,
+    "results": [
+      {
+        "txId": "0x793f3e28f79650e9da207f86bcb3dba5adcc4a39f3e601324292e62276dc5a9b",
+        "success": true,
+        "result": {
+          "txResponses": [
+            {
+              "type": 2,
+              "chainId": 11155111,
+              "nonce": 42,
+              "maxPriorityFeePerGas": {
+                "type": "BigNumber",
+                "hex": "0x118c25"
+              },
+              "maxFeePerGas": {
+                "type": "BigNumber",
+                "hex": "0x118c9d"
+              },
+              "gasPrice": null,
+              "gasLimit": {
+                "type": "BigNumber",
+                "hex": "0x01bade"
+              },
+              "to": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+              "value": {
+                "type": "BigNumber",
+                "hex": "0x00"
+              },
+              "data": "0x0af28bd3000000000000000000000000000000000000000000000000000000000000112600000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000035697066733a2f2f516d64417754335a514c4a4866587469454c6e59614c47763570356d3734434b314c68647a4d3561534b536734780000000000000000000000",
+              "accessList": [],
+              "hash": "0x1841d0870f95a0e729a018e84b4db7209fabf589ea750399bf54431715613a21",
+              "v": 0,
+              "r": "0x92d8888a630f7bbb06dcbc147aff0dec12a42b301593ec5a85e6bacf8e479c10",
+              "s": "0x485f12674e9a13a3c411087a81599bb4264f1b64fb62d0b1038854eddb2c6eba",
+              "from": "0xED2f2CC6f05c847858CE249db483079087CDa578",
+              "confirmations": 0
+            }
+          ]
+        }
+      }
+    ],
+    "_x402": {
+      "payerAddress": "0xED2f2CC6f05c847858CE249db483079087CDa578",
+      "requirement": {
+        "scheme": "exact",
+        "network": "eip155:11155111",
+        "asset": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+        "amount": "10000",
+        "payTo": "0xB610470ae0fEa78A1B27cD3F0D4011eb5361fAf1",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "name": "USDC",
+          "version": "2",
+          "tokenSymbol": "USDC",
+          "displayPrice": "0.01 USDC",
+          "assetTransferMethod": "eip3009",
+          "chainId": "11155111",
+          "paymentChainId": "11155111",
+          "operationChainId": "11155111",
+          "routeKey": "POST /send-transactions"
+        }
+      },
+      "settlement": {
+        "success": true,
+        "transaction": "0x8a9a1b355f972e645d61351fc278ce5325837c3de1d2cb666a6d8c72ab384c55",
+        "network": "eip155:11155111",
+        "payer": "0xED2f2CC6f05c847858CE249db483079087CDa578"
+      }
+    }
+  }
+}

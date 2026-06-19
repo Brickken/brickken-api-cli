@@ -6,17 +6,26 @@ import {
 	mapAgentRevokeFeedbackInput,
 	mapAgentSetMetadataInput,
 	mapAgentSetUriInput,
-	mapAgentSetWalletInput
+	mapAgentSetWalletInput,
+	mapAgentTransferOwnershipInput
 } from '../internal/core';
-import { collectValues, runPrepareCommand, withExecuteOption, withFileOption } from './shared';
+import {
+	collectValues,
+	runPrepareCommand,
+	withExecuteOption,
+	withExecutionModeOption,
+	withFileOption
+} from './shared';
 
 type Mapper = (input: Record<string, any>) => Record<string, any>;
 
 function withAgentBaseOptions(command: Command): Command {
-	return command
-		.option('--chain <chain>', 'Chain identifier')
-		.option('--signer-address <address>', 'Signer wallet address')
-		.option('--gas-limit <value>', 'Optional explicit gas limit');
+	return withExecutionModeOption(
+		command
+			.option('--chain <chain>', 'Chain identifier')
+			.option('--signer-address <address>', 'Signer wallet address')
+			.option('--gas-limit <value>', 'Optional explicit gas limit')
+	);
 }
 
 function withAgentReferenceOptions(command: Command): Command {
@@ -127,6 +136,20 @@ export function registerAgentCommands(program: Command): void {
 		)
 	).action(async (options, command) => {
 		await runAgentPrepare(command, options, 'Agent set wallet', mapAgentSetWalletInput);
+	});
+
+	withExecuteOption(
+		withFileOption(
+			withAgentReferenceOptions(
+				withAgentBaseOptions(
+					agent.command('transfer-ownership')
+						.description('Prepare or execute an ERC-8004 agent ownership transfer')
+						.option('--new-owner <address>', 'New owner wallet address')
+				)
+			)
+		)
+	).action(async (options, command) => {
+		await runAgentPrepare(command, options, 'Agent transfer ownership', mapAgentTransferOwnershipInput);
 	});
 
 	const feedback = agent.command('feedback').description('Manage ERC-8004 agent reputation feedback');

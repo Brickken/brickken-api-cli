@@ -57,6 +57,21 @@ export async function executePreparedResponse(
 		};
 	}
 
+	const executionMode = preparedBody.executionMode || preparedResponse?.executionMode;
+	if (executionMode === 'brickken-relayed') {
+		const relayedTransactions = transactions.map((tx: any) => ({
+			to: tx.to,
+			data: tx.data,
+			value: '0x0'
+		}));
+		const sent = await requestJson<any>(config, {
+			method: 'POST',
+			path: '/send-transactions',
+			data: { txId: preparedResponse.txId, transactions: relayedTransactions }
+		});
+		return { prepared: preparedResponse, sent };
+	}
+
 	const { signerAddress, signedTransactions } = await signTransactionsLocally(
 		transactions,
 		config.privateKey,

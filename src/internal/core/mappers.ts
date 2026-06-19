@@ -45,7 +45,8 @@ function buildBasePayload(input: RecordLike): RecordLike {
 	return cleanObject({
 		...input,
 		chainId: normalizeChainId(input.chainId || input.chain),
-		signerAddress: input.signerAddress
+		signerAddress: input.signerAddress,
+		executionMode: input.executionMode
 	});
 }
 
@@ -146,6 +147,18 @@ export function mapAgentSetWalletInput(input: RecordLike): RecordLike {
 		newWallet: input.newWallet,
 		deadline: input.deadline,
 		signature: input.signature,
+		gasLimit: input.gasLimit
+	});
+}
+
+export function mapAgentTransferOwnershipInput(input: RecordLike): RecordLike {
+	const basePayload = buildBasePayload(input);
+	return cleanObject({
+		...basePayload,
+		method: 'agentTransferOwnership',
+		agentUuid: input.agentUuid,
+		agentId: input.agentId,
+		newOwner: input.newOwner,
 		gasLimit: input.gasLimit
 	});
 }
@@ -292,6 +305,8 @@ export function prepareBodyForMethod(method: string, input: RecordLike): RecordL
 			return mapAgentSetMetadataInput(input);
 		case 'agentSetWallet':
 			return mapAgentSetWalletInput(input);
+		case 'agentTransferOwnership':
+			return mapAgentTransferOwnershipInput(input);
 		case 'agentCreateToken':
 		case 'createToken':
 			return mapCreateTokenInput(input);

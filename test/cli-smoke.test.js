@@ -8,6 +8,7 @@ const { spawn } = require('node:child_process');
 const { Wallet } = require('ethers');
 
 const CLI_PATH = path.resolve(__dirname, '..', 'dist', 'index.js');
+const core = require(path.resolve(__dirname, '..', 'dist', 'internal', 'core'));
 const TEST_WALLET = Wallet.createRandom();
 const TEST_PRIVATE_KEY = TEST_WALLET.privateKey;
 const ALT_WALLET = Wallet.createRandom();
@@ -187,6 +188,142 @@ async function startRpcMockServer(receiptsByHash) {
 		}
 	};
 }
+
+test('mapAgentTransferOwnershipInput produces an agentTransferOwnership prepare body', () => {
+	const body = core.mapAgentTransferOwnershipInput({
+		chain: '11155111',
+		signerAddress: TEST_WALLET.address,
+		agentUuid: 'agent-uuid-99',
+		newOwner: ALT_WALLET.address,
+		gasLimit: '500000'
+	});
+
+	assert.equal(body.method, 'agentTransferOwnership');
+	assert.equal(body.agentUuid, 'agent-uuid-99');
+	assert.equal(body.newOwner, ALT_WALLET.address);
+	assert.equal(body.chainId, 'aa36a7');
+	assert.equal(body.signerAddress, TEST_WALLET.address);
+	assert.equal(body.gasLimit, '500000');
+	// It must not invent fields that belong to set-wallet.
+	assert.equal(body.newWallet, undefined);
+	assert.equal(body.deadline, undefined);
+	assert.equal(body.signature, undefined);
+	// executionMode is only present when provided.
+	assert.equal('executionMode' in body, false);
+});
+
+test('mapAgentTransferOwnershipInput threads executionMode when provided', () => {
+	const body = core.mapAgentTransferOwnershipInput({
+		chain: '84532',
+		agentUuid: 'agent-uuid-100',
+		newOwner: ALT_WALLET.address,
+		executionMode: 'brickken-relayed'
+	});
+
+	assert.equal(body.method, 'agentTransferOwnership');
+	assert.equal(body.executionMode, 'brickken-relayed');
+	assert.equal(body.chainId, '14a34');
+});
+
+test('normalizeChainId maps Base Sepolia decimal 84532 to internal hex code 14a34', () => {
+	assert.equal(core.normalizeChainId('84532'), '14a34');
+	// Sanity: the other confirmed Base/Sepolia mappings remain stable.
+	assert.equal(core.normalizeChainId('8453'), '2105');
+	assert.equal(core.normalizeChainId('11155111'), 'aa36a7');
+});
+
+test('tx prepare --execution-mode brickken-relayed --execute sends a relayed send body', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace);
+	const inputFile = await writeJsonFile(workspace, 'relayed.json', {
+		agentUuid: 'agent-uuid-relayed',
+		newOwner: ALT_WALLET.address
+	});
+	const preparedTransaction = {
+		to: '0x000000000000000000000000000000000000dead',
+		data: '0xfeedface',
+		value: '0x0',
+		from: TEST_WALLET.address,
+		nonce: 7,
+		chainId: 84532,
+		type: 2,
+		gasLimit: '0x5208'
+	};
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xrelayed-tx',
+			transactions: preparedTransaction
+		},
+		sendResponse: {
+			success: true,
+			totalTransactions: 1,
+			successfulTransactions: 1,
+			failedTransactions: 0
+		}
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'tx',
+				'prepare',
+				'--method',
+				'agentTransferOwnership',
+				'--chain',
+				'84532',
+				'--execution-mode',
+				'brickken-relayed',
+				'--file',
+				inputFile,
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl,
+				'--execute'
+			],
+			{
+				cwd: workspace,
+				env: { BRICKKEN_PRIVATE_KEY: TEST_PRIVATE_KEY }
+			}
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+		assert.deepEqual(
+			server.requests.map((entry) => entry.url),
+			['/prepare-transactions', '/send-transactions']
+		);
+
+		// Relayed prepare body: includes executionMode, omits no required field, scalar method.
+		const prepareBody = server.requests[0].body;
+		assert.equal(prepareBody.method, 'agentTransferOwnership');
+		assert.equal(prepareBody.executionMode, 'brickken-relayed');
+		assert.equal(prepareBody.chainId, '14a34');
+		assert.equal(prepareBody.newOwner, ALT_WALLET.address);
+		assert.equal(prepareBody.agentUuid, 'agent-uuid-relayed');
+
+		// Relayed send body: scalar txId, single transaction, value forced to 0x0,
+		// to/data copied verbatim from the prepared transaction, and NO signedTransactions.
+		const sendBody = server.requests[1].body;
+		assert.equal(sendBody.txId, '0xrelayed-tx');
+		assert.equal(Array.isArray(sendBody.txId), false);
+		assert.equal(Array.isArray(sendBody.transactions), true);
+		assert.equal(sendBody.transactions.length, 1);
+		assert.equal(sendBody.transactions[0].to, preparedTransaction.to);
+		assert.equal(sendBody.transactions[0].data, preparedTransaction.data);
+		assert.equal(sendBody.transactions[0].value, '0x0');
+		assert.equal(sendBody.signedTransactions, undefined);
+
+		const output = JSON.parse(result.stdout);
+		assert.equal(output.prepared.txId, '0xrelayed-tx');
+		assert.equal(output.sent.success, true);
+		// Relayed mode does not sign blockchain transactions locally.
+		assert.equal(output.signedTransactions, undefined);
+		assert.equal(output.signerAddress, undefined);
+	} finally {
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
 
 test('top-level create-token prepares agentCreateToken and ignores API key environment variables', async () => {
 	const workspace = await createTempWorkspace();

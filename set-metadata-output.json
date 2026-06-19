@@ -1,0 +1,132 @@
+{
+  "prepared": {
+    "transactions": [
+      {
+        "from": "0xED2f2CC6f05c847858CE249db483079087CDa578",
+        "to": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+        "value": "0x00",
+        "nonce": 43,
+        "chainId": 11155111,
+        "data": "0x466648da0000000000000000000000000000000000000000000000000000000000001126000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000c6361706162696c697469657300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000067227b5c227461736b735c223a5b5c2272657365617263685c222c5c2273756d6d6172697a6174696f6e5c222c5c22746f6b656e2d6f7065726174696f6e735c225d2c5c2264656d6f5c223a5c2271612d7465726d696e616c2d323032362d30352d30385c227d2200000000000000000000000000000000000000000000000000",
+        "type": 2,
+        "maxPriorityFeePerGas": "1150000",
+        "maxFeePerGas": "1150043",
+        "gasLimit": "0x0289d2"
+      }
+    ],
+    "txId": "0x6fe1769bc65bd4c856d2d4f5391afafb4bfbc4cc29df5f87df3427dea94094be",
+    "info": {
+      "agentUuid": "54399c6e-ffb4-4bd4-90ab-61c96fadc060",
+      "agentId": "4390",
+      "metadataKey": "capabilities",
+      "metadataValue": "\"{\\\"tasks\\\":[\\\"research\\\",\\\"summarization\\\",\\\"token-operations\\\"],\\\"demo\\\":\\\"qa-terminal-2026-05-08\\\"}\""
+    },
+    "_x402": {
+      "payerAddress": "0xED2f2CC6f05c847858CE249db483079087CDa578",
+      "requirement": {
+        "scheme": "exact",
+        "network": "eip155:11155111",
+        "asset": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+        "amount": "10000",
+        "payTo": "0xB610470ae0fEa78A1B27cD3F0D4011eb5361fAf1",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "name": "USDC",
+          "version": "2",
+          "tokenSymbol": "USDC",
+          "displayPrice": "0.01 USDC",
+          "assetTransferMethod": "eip3009",
+          "chainId": "11155111",
+          "paymentChainId": "11155111",
+          "operationChainId": "11155111",
+          "routeKey": "POST /prepare-transactions"
+        }
+      },
+      "settlement": {
+        "success": true,
+        "transaction": "0x44d6faefdd9f48a677f4baedfb49f956f691af863a980d7697c6b636869a2ea0",
+        "network": "eip155:11155111",
+        "payer": "0xED2f2CC6f05c847858CE249db483079087CDa578"
+      }
+    }
+  },
+  "signerAddress": "0xED2f2CC6f05c847858CE249db483079087CDa578",
+  "signedTransactions": [
+    "0x02f901b283aa36a72b83118c3083118c5b830289d2948004a818bfb912233c491871b3d84c89a494bd9e80b90144466648da0000000000000000000000000000000000000000000000000000000000001126000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000c6361706162696c697469657300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000067227b5c227461736b735c223a5b5c2272657365617263685c222c5c2273756d6d6172697a6174696f6e5c222c5c22746f6b656e2d6f7065726174696f6e735c225d2c5c2264656d6f5c223a5c2271612d7465726d696e616c2d323032362d30352d30385c227d2200000000000000000000000000000000000000000000000000c001a0448c9aee87c0a53a3f1957ac28bede5c846473fbdd241b53e2655f1fea752f86a064d9808648a6634b54bb7d0786b1d1f74895c64954e4b90f1282c28fc2563a2f"
+  ],
+  "sent": {
+    "success": true,
+    "totalTransactions": 1,
+    "successfulTransactions": 1,
+    "failedTransactions": 0,
+    "results": [
+      {
+        "txId": "0x6fe1769bc65bd4c856d2d4f5391afafb4bfbc4cc29df5f87df3427dea94094be",
+        "success": true,
+        "result": {
+          "txResponses": [
+            {
+              "type": 2,
+              "chainId": 11155111,
+              "nonce": 43,
+              "maxPriorityFeePerGas": {
+                "type": "BigNumber",
+                "hex": "0x118c30"
+              },
+              "maxFeePerGas": {
+                "type": "BigNumber",
+                "hex": "0x118c5b"
+              },
+              "gasPrice": null,
+              "gasLimit": {
+                "type": "BigNumber",
+                "hex": "0x0289d2"
+              },
+              "to": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+              "value": {
+                "type": "BigNumber",
+                "hex": "0x00"
+              },
+              "data": "0x466648da0000000000000000000000000000000000000000000000000000000000001126000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000c6361706162696c697469657300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000067227b5c227461736b735c223a5b5c2272657365617263685c222c5c2273756d6d6172697a6174696f6e5c222c5c22746f6b656e2d6f7065726174696f6e735c225d2c5c2264656d6f5c223a5c2271612d7465726d696e616c2d323032362d30352d30385c227d2200000000000000000000000000000000000000000000000000",
+              "accessList": [],
+              "hash": "0x294ec08ab5676db7f0c631d06cb1c8820b6342621ac25252ddb35969c6e4c995",
+              "v": 1,
+              "r": "0x448c9aee87c0a53a3f1957ac28bede5c846473fbdd241b53e2655f1fea752f86",
+              "s": "0x64d9808648a6634b54bb7d0786b1d1f74895c64954e4b90f1282c28fc2563a2f",
+              "from": "0xED2f2CC6f05c847858CE249db483079087CDa578",
+              "confirmations": 0
+            }
+          ]
+        }
+      }
+    ],
+    "_x402": {
+      "payerAddress": "0xED2f2CC6f05c847858CE249db483079087CDa578",
+      "requirement": {
+        "scheme": "exact",
+        "network": "eip155:11155111",
+        "asset": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+        "amount": "10000",
+        "payTo": "0xB610470ae0fEa78A1B27cD3F0D4011eb5361fAf1",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "name": "USDC",
+          "version": "2",
+          "tokenSymbol": "USDC",
+          "displayPrice": "0.01 USDC",
+          "assetTransferMethod": "eip3009",
+          "chainId": "11155111",
+          "paymentChainId": "11155111",
+          "operationChainId": "11155111",
+          "routeKey": "POST /send-transactions"
+        }
+      },
+      "settlement": {
+        "success": true,
+        "transaction": "0xe8655420d52086e4e5525dfb70561fad3af37f98186e0f19ccce8b5656dd361f",
+        "network": "eip155:11155111",
+        "payer": "0xED2f2CC6f05c847858CE249db483079087CDa578"
+      }
+    }
+  }
+}

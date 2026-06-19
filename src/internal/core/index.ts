@@ -16,6 +16,7 @@ export {
 	mapAgentSetUriInput,
 	mapAgentSetMetadataInput,
 	mapAgentSetWalletInput,
+	mapAgentTransferOwnershipInput,
 	mapCreateTokenInput,
 	mapMintTokenInput,
 	mapBurnTokenInput,

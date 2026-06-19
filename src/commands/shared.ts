@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { readStructuredFile } from '../files';
 import { requestJson, executePreparedResponse, cleanInput, ResolvedConfig } from '../internal/core';
 import { signTransactionsLocally } from '../internal/core';
@@ -28,6 +28,13 @@ export function withFileOption(command: Command, description = 'Path to a JSON o
 
 export function withExecuteOption(command: Command): Command {
 	return command.option('--execute', 'Prepare, sign locally, and send the transaction');
+}
+
+export function withExecutionModeOption(command: Command): Command {
+	return command.addOption(
+		new Option('--execution-mode <mode>', 'Execution mode for the send step')
+			.choices(['client-signed', 'brickken-relayed'])
+	);
 }
 
 export async function buildCommandInput(

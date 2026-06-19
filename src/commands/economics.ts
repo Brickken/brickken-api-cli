@@ -8,13 +8,20 @@ import {
 	mapTransferFromTokenInput,
 	mapTransferTokenInput
 } from '../internal/core';
-import { runPrepareCommand, withExecuteOption, withFileOption } from './shared';
+import {
+	runPrepareCommand,
+	withExecuteOption,
+	withExecutionModeOption,
+	withFileOption
+} from './shared';
 
 function withEconomicsBaseOptions(command: Command): Command {
-	return command
-		.option('--chain <chain>', 'Chain identifier')
-		.option('--signer-address <address>', 'Signer wallet address')
-		.option('--gas-limit <value>', 'Optional explicit gas limit');
+	return withExecutionModeOption(
+		command
+			.option('--chain <chain>', 'Chain identifier')
+			.option('--signer-address <address>', 'Signer wallet address')
+			.option('--gas-limit <value>', 'Optional explicit gas limit')
+	);
 }
 
 export function registerTokenEconomicsCommands(program: Command): void {
