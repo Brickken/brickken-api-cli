@@ -60,4 +60,13 @@ Agentic tools:
 - `agent_give_feedback`, `agent_revoke_feedback`, `agent_append_feedback_response`
 - `agent_create_token`, `agent_mint_token`, `agent_burn_token`, `agent_transfer_token`, `agent_transfer_from_token`, `agent_approve_token`
 
+RAMS tools:
+
+- lifecycle: `rams_grant_mandate`, `rams_revoke_mandate`, `rams_extend_mandate`, `rams_set_operator`
+- execution/admin: `rams_execute`, `rams_set_executor_action`, `rams_freeze_agent`, `rams_unfreeze_agent`, `rams_grant_principal`, `rams_revoke_principal`
+- reads: `rams_get_mandate`, `rams_can_execute`, `rams_get_status`, `rams_check_compliance`, `rams_get_executor_action`
+- EIP-712: `rams_get_typed_data`
+
 Agent tools auto-sign/send when the session has a private key. If no API key is configured, eligible agentic calls use x402.
+
+RAMS reads and typed-data fetches require an API key. `rams_get_typed_data` also signs the returned envelope when the session private key matches the expected principal; otherwise it returns the envelope with a warning for external signing. Only the four lifecycle tools accept `brickken-relayed`; omit `signerAddress` in that mode. The remaining RAMS writes are client-signed only.

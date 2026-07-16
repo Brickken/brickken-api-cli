@@ -1,8 +1,9 @@
-export type BrickkenEnvironment = 'sandbox' | 'production';
+export type BrickkenEnvironment = 'forge' | 'sandbox' | 'production';
 
 export interface ResolvedConfig {
 	env: BrickkenEnvironment;
 	baseUrl: string;
+	apiKey?: string;
 	privateKey?: string;
 	rpcUrl?: string;
 	outputJson?: boolean;

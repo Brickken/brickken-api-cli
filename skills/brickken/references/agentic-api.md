@@ -1,11 +1,12 @@
 # Agentic API Reference
 
-Use the Agentic API when the user has no Brickken API key and wants ERC-8004 agent identity, reputation, or agent-owned ERC-20 operations. It is paid through x402 and signs transactions locally with a private key.
+Use the Agentic API for ERC-8004 agent identity/reputation, agent-owned ERC-20 operations, and ERC-8226 RAMS writes. Writes are paid through x402 and blockchain transactions are signed locally. RAMS reads and EIP-712 typed-data fetches are the exception: they use `x-api-key`.
 
 Base URLs:
 
 | Environment | URL |
 | --- | --- |
+| Forge | `https://forge.apigw.brickken.rocks/api` |
 | Sandbox | `https://api.sandbox.brickken.com` |
 | Production | `https://api.brickken.com` |
 
@@ -37,6 +38,26 @@ Never hardcode x402 asset, amount, recipient, or network. Read them from `PAYMEN
 | `POST /x402/token/transfer` | `agentTransferToken` |
 | `POST /x402/token/transfer-from` | `agentTransferFromToken` |
 | `POST /x402/token/approve` | `agentApproveToken` |
+| `POST /x402/rams/grant-mandate` | `ramsGrantMandate` |
+| `POST /x402/rams/revoke-mandate` | `ramsRevokeMandate` |
+| `POST /x402/rams/extend-mandate` | `ramsExtendMandate` |
+| `POST /x402/rams/set-operator` | `ramsSetOperator` |
+| `POST /x402/rams/execute` | `ramsExecute` |
+| `POST /x402/rams/set-executor-action` | `ramsSetExecutorAction` |
+| `POST /x402/rams/freeze-agent` | `ramsFreezeAgent` |
+| `POST /x402/rams/unfreeze-agent` | `ramsUnfreezeAgent` |
+| `POST /x402/rams/grant-principal` | `ramsGrantPrincipal` |
+| `POST /x402/rams/revoke-principal` | `ramsRevokePrincipal` |
+
+RAMS facades default to `client-signed`. Only grant, revoke, extend, and set-operator accept `executionMode: "brickken-relayed"`, and only when the matching principal EIP-712 `signature` and `deadline` are included; omit `signerAddress` in that mode because Brickken supplies its operation signer. Execute and all executor/compliance/enforcer administration are never relayed.
+
+## RAMS Reads and Typed Data
+
+Authenticated reads: `GET /rams/mandate`, `/rams/can-execute`, `/rams/status`, `/rams/compliance-status`, and `/rams/executor-action`.
+
+Typed data: `GET /rams/typed-data/{grant-mandate|revoke-mandate|extend-mandate|set-operator}`. Sign the complete returned `typedData` locally, then submit the same operation fields with the returned `deadline` and signature. The nonce is shared per principal and is fetched on-chain; never default it to zero.
+
+RAMS actions are left-aligned bytes32 selectors. Amounts and caps are raw token base units; cap fields accept `max`/`unlimited`.
 
 ## Important Fields
 

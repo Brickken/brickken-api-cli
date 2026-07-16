@@ -6,6 +6,7 @@ It covers:
 
 - ERC-8004 agent identity operations
 - ERC-8004 reputation feedback operations
+- ERC-8226 RAMS mandate lifecycle, compliance, executor, read, and EIP-712 signing operations
 - x402-capable agentic token create, mint, burn, transfer, transfer-from, and approve operations
 - raw transaction preparation, signing, sending, and one-shot execution
 
@@ -41,7 +42,11 @@ brickken skill path
 
 ## Authentication
 
-The CLI is x402-only. Do not pass or export API keys; `BRICKKEN_API_KEY` and `BKN_API_KEY` are ignored.
+Transaction writes use x402 and never send an API key. RAMS read and typed-data endpoints require a Brickken API key:
+
+```bash
+export BRICKKEN_API_KEY=...
+```
 
 Provide a private key for local transaction signing and x402 payment signing:
 
@@ -281,6 +286,7 @@ The high-level `create-token`, `mint`, `burn`, `transfer`, `transfer-from`, and 
 ## Command Groups
 
 - `brickken agent`: ERC-8004 identity and reputation operations
+- `brickken rams`: ERC-8226 mandate lifecycle, executor/compliance administration, reads, and EIP-712 signing
 - `brickken create-token`: deploy an agentic ERC-20 through the x402 flow
 - `brickken mint`: mint an agentic ERC-20 through the x402 flow
 - `brickken burn`: burn an agentic ERC-20 through the x402 flow
@@ -288,6 +294,56 @@ The high-level `create-token`, `mint`, `burn`, `transfer`, `transfer-from`, and 
 - `brickken transfer`: transfer ERC-20 tokens through the x402 flow
 - `brickken transfer-from`: transfer ERC-20 allowance through the x402 flow
 - `brickken tx`: raw prepare, sign, send, status, and one-shot execute flows
+
+## RAMS Mandate Flow
+
+`brickken rams` exposes ten write commands, five authenticated read commands, and local EIP-712 signing. Writes prepare only by default; add `--execute` to sign/send and settle x402.
+
+Fetch typed data and sign it with the principal key:
+
+```bash
+brickken rams sign \
+  --operation grant-mandate \
+  --chain 11155111 \
+  --agent "$AGENT" \
+  --principal "$PRINCIPAL" \
+  --valid-until 1789000000 \
+  --identity-ref "$IDENTITY_REF" \
+  --asset "$ASSET" \
+  --max-transaction-value 1000000 \
+  --max-cumulative-value 5000000 \
+  --action 0x23b872dd \
+  --json > rams-signature.json
+```
+
+Then request Brickken-relayed execution (omit `--signer-address`; the backend supplies its operation signer):
+
+```bash
+brickken rams grant \
+  --chain 11155111 \
+  --agent "$AGENT" \
+  --principal "$PRINCIPAL" \
+  --valid-until 1789000000 \
+  --identity-ref "$IDENTITY_REF" \
+  --asset "$ASSET" \
+  --max-transaction-value 1000000 \
+  --max-cumulative-value 5000000 \
+  --action 0x23b872dd \
+  --signature "$(jq -r .signature rams-signature.json)" \
+  --deadline "$(jq -r .deadline rams-signature.json)" \
+  --execution-mode brickken-relayed \
+  --execute --json
+```
+
+The private key configured for this second command authorizes the x402 payment; it does not need to be the principal key.
+
+Inspect the resulting mandate with API-key auth:
+
+```bash
+brickken rams inspect --chain 11155111 --agent "$AGENT" --principal "$PRINCIPAL" --json
+```
+
+Run `brickken rams --help` and `brickken rams <command> --help` for the complete input surface. Lifecycle signature mode is supported only by `grant`, `revoke`, `extend`, and `set-operator`; executor and admin operations are never Brickken-relayed.
 
 ## Raw Transaction Flow
 
@@ -350,8 +406,9 @@ Keep using the explicit `tx sign` / `tx send` path when you want full manual con
 
 Global flags:
 
-- `--env <sandbox|production>`
+- `--env <forge|sandbox|production>` (`forge` resolves to `https://forge.apigw.brickken.rocks/api`)
 - `--base-url <url>`
+- `--api-key <key>`
 - `--private-key <key>`
 - `--rpc-url <url>`
 - `--env-file <path>`
@@ -359,6 +416,7 @@ Global flags:
 
 Environment variables:
 
+- `BRICKKEN_API_KEY` or `BKN_API_KEY` (RAMS reads and typed-data only)
 - `BRICKKEN_PRIVATE_KEY` or `BKN_PRIVATE_KEY`
 - `BRICKKEN_BASE_URL` or `BKN_BASE_URL`
 - `BRICKKEN_RPC_URL` or `BKN_RPC_URL`

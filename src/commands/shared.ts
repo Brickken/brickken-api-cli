@@ -128,12 +128,14 @@ export async function runInfoCommand(params: {
 	label: string;
 	path: string;
 	buildQuery: QueryBuilder;
+	requiresApiKey?: boolean;
 }): Promise<void> {
 	const config = resolveCliConfig(params.command);
 	const queryInput = await buildCommandInput(params.options, ['file']);
 	const result = await requestJson<any>(config, {
 		method: 'GET',
 		path: params.path,
+		apiKeyAuth: params.requiresApiKey,
 		query: params.buildQuery(queryInput)
 	});
 

@@ -3,6 +3,7 @@ import path from 'path';
 import { Command, Option } from 'commander';
 import { registerTxCommands } from './commands/tx';
 import { registerAgentCommands } from './commands/agent';
+import { registerRamsCommands } from './commands/rams';
 import { registerTokenEconomicsCommands } from './commands/economics';
 import { registerSkillCommands } from './commands/skill';
 
@@ -26,15 +27,17 @@ export function buildProgram(): Command {
 		.showHelpAfterError()
 		.addOption(
 			new Option('--env <environment>', 'Target Brickken environment')
-				.choices(['sandbox', 'production'])
+				.choices(['forge', 'sandbox', 'production'])
 		)
 		.option('--base-url <url>', 'Override the Brickken API base URL')
+		.option('--api-key <key>', 'Brickken API key used by authenticated RAMS read and typed-data endpoints')
 		.option('--private-key <key>', 'Private key used for local signing and x402 payment flows')
 		.option('--rpc-url <url>', 'RPC URL used to wait for token deployment receipts')
 		.option('--env-file <path>', 'Optional env file to load before resolving config')
 		.option('--json', 'Print machine-readable JSON output');
 
 	registerAgentCommands(program);
+	registerRamsCommands(program);
 	registerTokenEconomicsCommands(program);
 	registerTxCommands(program);
 	registerSkillCommands(program);
