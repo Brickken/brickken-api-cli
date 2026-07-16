@@ -406,7 +406,7 @@ Keep using the explicit `tx sign` / `tx send` path when you want full manual con
 
 Global flags:
 
-- `--env <forge|sandbox|production>` (`forge` resolves to `https://forge.apigw.brickken.rocks/api`)
+- `--env <forge|sandbox|production>` (`forge` resolves to `https://d4aqanatl1.execute-api.eu-west-1.amazonaws.com/forge`)
 - `--base-url <url>`
 - `--api-key <key>`
 - `--private-key <key>`

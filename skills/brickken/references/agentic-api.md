@@ -6,7 +6,7 @@ Base URLs:
 
 | Environment | URL |
 | --- | --- |
-| Forge | `https://forge.apigw.brickken.rocks/api` |
+| Forge | `https://d4aqanatl1.execute-api.eu-west-1.amazonaws.com/forge` |
 | Sandbox | `https://api.sandbox.brickken.com` |
 | Production | `https://api.brickken.com` |
 

@@ -29,7 +29,7 @@ Never ask the user to paste secrets into chat. Use environment variable placehol
 - `BRICKKEN_API_KEY`: dapp API authentication. Do not use it for CLI x402 flows.
 - `BRICKKEN_PRIVATE_KEY` / `BKN_PRIVATE_KEY`: Agentic API x402 payment signing and transaction signing. Never print it.
 - `BRICKKEN_RPC_URL` / `BKN_RPC_URL`: optional receipt lookup RPC, especially for `create-token --execute`.
-- `BRICKKEN_ENV`: `forge`, `sandbox`, or `production`. Default CLI environment is `sandbox`; `forge` targets `https://forge.apigw.brickken.rocks/api`.
+- `BRICKKEN_ENV`: `forge`, `sandbox`, or `production`. Default CLI environment is `sandbox`; `forge` targets `https://d4aqanatl1.execute-api.eu-west-1.amazonaws.com/forge`.
 
 ## Execution Workflow
 

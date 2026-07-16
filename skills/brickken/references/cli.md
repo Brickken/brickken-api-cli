@@ -32,7 +32,7 @@ Aliases:
 | `BRICKKEN_PRIVATE_KEY` | `BKN_PRIVATE_KEY` | x402 + transaction signing |
 | `BRICKKEN_RPC_URL` | `BKN_RPC_URL` | Receipt polling |
 | `BRICKKEN_BASE_URL` | `BKN_BASE_URL` | API base override |
-| `BRICKKEN_ENV` | `BKN_ENV` | `forge`, `sandbox`, or `production` (`forge` targets `https://forge.apigw.brickken.rocks/api`) |
+| `BRICKKEN_ENV` | `BKN_ENV` | `forge`, `sandbox`, or `production` (`forge` targets `https://d4aqanatl1.execute-api.eu-west-1.amazonaws.com/forge`) |
 
 Global flags: `--env`, `--base-url`, `--api-key`, `--private-key`, `--rpc-url`, `--env-file`, `--json`.
 

@@ -2,7 +2,7 @@ import { BrickkenEnvironment, ResolvedConfig } from './types';
 
 export const SANDBOX_BASE_URL = 'https://api.sandbox.brickken.com';
 export const PRODUCTION_BASE_URL = 'https://api.brickken.com';
-export const FORGE_BASE_URL = 'https://forge.apigw.brickken.rocks/api';
+export const FORGE_BASE_URL = 'https://d4aqanatl1.execute-api.eu-west-1.amazonaws.com/forge';
 
 export function getBaseUrlForEnvironment(env: BrickkenEnvironment): string {
 	switch (env) {

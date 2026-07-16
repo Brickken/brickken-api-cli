@@ -17,7 +17,7 @@ const ERC20_TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a116
 const ZERO_ADDRESS_TOPIC = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 test('Forge resolves to the feature environment API base URL', () => {
-	assert.equal(core.FORGE_BASE_URL, 'https://forge.apigw.brickken.rocks/api');
+	assert.equal(core.FORGE_BASE_URL, 'https://d4aqanatl1.execute-api.eu-west-1.amazonaws.com/forge');
 	assert.equal(core.getBaseUrlForEnvironment('forge'), core.FORGE_BASE_URL);
 });
 
