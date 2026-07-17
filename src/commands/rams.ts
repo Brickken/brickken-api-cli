@@ -257,7 +257,7 @@ export function registerRamsCommands(program: Command): void {
 		withFileOption(
 			withRamsBaseOptions(
 				rams.command('set-action')
-					.description('Prepare or execute a RAMS setAction on the executor (signer: the executor owner; never brickken-relayed)')
+					.description('Register or update a selector ActionSpec (supported, hasAmount, amountIndex; signer: the executor owner; never brickken-relayed)')
 					.option('--selector <selector>', '4-byte function selector, e.g. 0x23b872dd')
 					.option('--action <bytes32>', 'Left-aligned bytes32 action (alternative to --selector)')
 					.option('--supported <true|false>', 'Whether the selector is supported')
@@ -445,7 +445,7 @@ export function registerRamsCommands(program: Command): void {
 
 	withRamsReadBaseOptions(
 		rams.command('executor-action')
-			.description(`Get an executor action spec via GET /rams/executor-action. ${RAMS_READ_AUTH_NOTE}`)
+			.description(`Return the ActionSpec for a function selector via GET /rams/executor-action. ${RAMS_READ_AUTH_NOTE}`)
 			.option('--selector <selector>', '4-byte function selector')
 			.option('--action <bytes32>', 'Left-aligned bytes32 action (alternative to --selector)')
 			.option('--executor-address <address>', 'AgentExecutor contract address override')

@@ -76,7 +76,7 @@ Global flags: `--env`, `--base-url`, `--api-key`, `--private-key`, `--rpc-url`, 
 | `brickken rams can-execute` | `GET /rams/can-execute` | Preflight action/value allowance |
 | `brickken rams status` | `GET /rams/status` | Freeze, nonce, and optional operator state |
 | `brickken rams compliance-status` | `GET /rams/compliance-status` | Principal eligibility |
-| `brickken rams executor-action` | `GET /rams/executor-action` | Selector/action registration |
+| `brickken rams executor-action` | `GET /rams/executor-action` | ActionSpec lookup (`supported`, `hasAmount`, `amountIndex`) |
 | `brickken rams sign` | `GET /rams/typed-data/{operation}` or local file | Sign grant/revoke/extend/set-operator typed data locally |
 
 All writes accept `--file`; add `--execute` for prepare → local transaction signing → send. `grant`, `revoke`, `extend`, and `set-operator` additionally accept `--signature`, `--deadline`, and `--execution-mode brickken-relayed`; omit `--signer-address` in that mode because Brickken supplies its operation signer. `rams sign --typed-data-file envelope.json` signs offline and does not require an API key.
