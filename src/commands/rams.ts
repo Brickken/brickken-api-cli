@@ -28,7 +28,7 @@ import {
 	withFileOption
 } from './shared';
 
-const RAMS_READ_AUTH_NOTE = 'Requires a Brickken API key on the backend; x402 does not cover read endpoints.';
+const RAMS_READ_AUTH_NOTE = 'Uses an API key when configured; otherwise pays 0.001 USDC through x402.';
 
 const RAMS_SIGN_OPERATIONS = ['grant-mandate', 'revoke-mandate', 'extend-mandate', 'set-operator'];
 
@@ -101,7 +101,7 @@ async function runRamsSignCommand(options: Record<string, any>, command: Command
 		const response = await requestJson<any>(config, {
 			method: 'GET',
 			path: `/rams/typed-data/${options.operation}`,
-			apiKeyAuth: true,
+			apiKeyOrX402Auth: true,
 			query: buildRamsTypedDataQuery(input)
 		});
 		envelope = response?.data?.typedData ? response.data : response;
@@ -359,7 +359,7 @@ export function registerRamsCommands(program: Command): void {
 			options,
 			label: 'RAMS mandate',
 			path: '/rams/mandate',
-			requiresApiKey: true,
+			supportsX402: true,
 			buildQuery: (input) => ({
 				chainId: normalizeChainId(input.chainId || input.chain),
 				agent: input.agent,
@@ -384,7 +384,7 @@ export function registerRamsCommands(program: Command): void {
 			options,
 			label: 'RAMS can-execute',
 			path: '/rams/can-execute',
-			requiresApiKey: true,
+			supportsX402: true,
 			buildQuery: (input) => ({
 				chainId: normalizeChainId(input.chainId || input.chain),
 				agent: input.agent,
@@ -410,7 +410,7 @@ export function registerRamsCommands(program: Command): void {
 			options,
 			label: 'RAMS status',
 			path: '/rams/status',
-			requiresApiKey: true,
+			supportsX402: true,
 			buildQuery: (input) => ({
 				chainId: normalizeChainId(input.chainId || input.chain),
 				agent: input.agent,
@@ -433,7 +433,7 @@ export function registerRamsCommands(program: Command): void {
 			options,
 			label: 'RAMS compliance status',
 			path: '/rams/compliance-status',
-			requiresApiKey: true,
+			supportsX402: true,
 			buildQuery: (input) => ({
 				chainId: normalizeChainId(input.chainId || input.chain),
 				principal: input.principal,
@@ -455,7 +455,7 @@ export function registerRamsCommands(program: Command): void {
 			options,
 			label: 'RAMS executor action',
 			path: '/rams/executor-action',
-			requiresApiKey: true,
+			supportsX402: true,
 			buildQuery: (input) => ({
 				chainId: normalizeChainId(input.chainId || input.chain),
 				selector: input.selector,

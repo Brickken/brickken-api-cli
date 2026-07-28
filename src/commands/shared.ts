@@ -129,6 +129,7 @@ export async function runInfoCommand(params: {
 	path: string;
 	buildQuery: QueryBuilder;
 	requiresApiKey?: boolean;
+	supportsX402?: boolean;
 }): Promise<void> {
 	const config = resolveCliConfig(params.command);
 	const queryInput = await buildCommandInput(params.options, ['file']);
@@ -136,6 +137,7 @@ export async function runInfoCommand(params: {
 		method: 'GET',
 		path: params.path,
 		apiKeyAuth: params.requiresApiKey,
+		apiKeyOrX402Auth: params.supportsX402,
 		query: params.buildQuery(queryInput)
 	});
 

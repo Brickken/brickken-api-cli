@@ -42,7 +42,7 @@ brickken skill path
 
 ## Authentication
 
-Transaction writes use x402 and never send an API key. RAMS read and typed-data endpoints require a Brickken API key:
+Transaction writes use x402 and never send an API key. RAMS read and typed-data endpoints use an API key when configured, or a minimum 0.001 USDC x402 payment otherwise:
 
 ```bash
 export BRICKKEN_API_KEY=...
@@ -297,7 +297,7 @@ The high-level `create-token`, `mint`, `burn`, `transfer`, `transfer-from`, and 
 
 ## RAMS Mandate Flow
 
-`brickken rams` exposes ten write commands, five authenticated read commands, and local EIP-712 signing. Writes prepare only by default; add `--execute` to sign/send and settle x402.
+`brickken rams` exposes ten write commands, five API-key-or-x402 read commands, and local EIP-712 signing. Writes prepare only by default; add `--execute` to sign/send and settle x402. Online typed-data fetching follows the same API-key-or-0.001-USDC-x402 policy.
 
 Fetch typed data and sign it with the principal key:
 
@@ -337,7 +337,7 @@ brickken rams grant \
 
 The private key configured for this second command authorizes the x402 payment; it does not need to be the principal key.
 
-Inspect the resulting mandate with API-key auth:
+Inspect the resulting mandate. The CLI sends the configured API key when available; without one, it uses the configured private key to pay 0.001 USDC through x402:
 
 ```bash
 brickken rams inspect --chain 11155111 --agent "$AGENT" --principal "$PRINCIPAL" --json

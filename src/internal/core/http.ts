@@ -27,6 +27,7 @@ export interface JsonRequestOptions {
 	query?: Record<string, Primitive | undefined>;
 	data?: any;
 	apiKeyAuth?: boolean;
+	apiKeyOrX402Auth?: boolean;
 }
 
 interface BaseRequestOptions extends JsonRequestOptions {
@@ -140,11 +141,15 @@ export async function requestJson<T>(
 		);
 	}
 
+	const useApiKey = Boolean(
+		config.apiKey && (options.apiKeyAuth || options.apiKeyOrX402Auth)
+	);
+
 	const requestOptions: BaseRequestOptions = {
 		...options,
 		headers: {
 			'Content-Type': 'application/json',
-			...(options.apiKeyAuth ? { 'x-api-key': config.apiKey as string } : {})
+			...(useApiKey ? { 'x-api-key': config.apiKey as string } : {})
 		}
 	};
 	const response = await sendRequest<T>(config, requestOptions);

@@ -91,7 +91,7 @@ function runCli(args, { cwd, env }) {
 	});
 }
 
-// Generic stub server: `routes` maps '<METHOD> <pathname>' to a response body.
+// Generic stub server: `routes` maps '<METHOD> <pathname>' to a response body or handler.
 async function startStubServer(routes) {
 	const requests = [];
 
@@ -114,9 +114,16 @@ async function startStubServer(routes) {
 			});
 
 			const routeKey = `${req.method} ${url.pathname}`;
-			if (routes[routeKey]) {
-				res.writeHead(200, { 'Content-Type': 'application/json' });
-				res.end(JSON.stringify(routes[routeKey]));
+			const route = routes[routeKey];
+			if (route) {
+				const routeResponse = typeof route === 'function'
+					? route(requests[requests.length - 1])
+					: { body: route };
+				res.writeHead(routeResponse.status || 200, {
+					'Content-Type': 'application/json',
+					...(routeResponse.headers || {})
+				});
+				res.end(JSON.stringify(routeResponse.body));
 				return;
 			}
 
@@ -511,9 +518,44 @@ test('rams inspect issues a GET /rams/mandate with the expected query string', a
 	}
 });
 
-test('rams reads fail before issuing a request when no API key is configured', async () => {
+test('rams reads pay x402 when no API key is configured', async () => {
 	const workspace = await createTempWorkspace();
 	const envFile = await writeEnvFile(workspace);
+	const paymentRequired = Buffer.from(JSON.stringify({
+		x402Version: 2,
+		accepts: [{
+			scheme: 'exact',
+			network: 'eip155:84532',
+			asset: '0x036cbd53842c5426634e7929541ec2318f3dcf7c',
+			amount: '1000',
+			payTo: AGENT_WALLET.address,
+			maxTimeoutSeconds: 300,
+			extra: {
+				name: 'USDC',
+				version: '2',
+				decimals: 6,
+				displayPrice: '0.001 USDC'
+			}
+		}]
+	})).toString('base64');
+	const paymentResponse = Buffer.from(JSON.stringify({
+		success: true,
+		transaction: `0x${'12'.repeat(32)}`,
+		network: 'eip155:84532'
+	})).toString('base64');
+	const server = await startStubServer({
+		'GET /rams/status': (request) => request.headers['x-payment']
+			? {
+				status: 200,
+				headers: { 'PAYMENT-RESPONSE': paymentResponse },
+				body: { data: { frozen: false, nonce: '0' } }
+			}
+			: {
+				status: 402,
+				headers: { 'PAYMENT-REQUIRED': paymentRequired },
+				body: { error: 'Payment Required' }
+			}
+	});
 
 	try {
 		const result = await runCli(
@@ -529,14 +571,33 @@ test('rams reads fail before issuing a request when no API key is configured', a
 				'--env-file',
 				envFile,
 				'--base-url',
-				'http://127.0.0.1:1'
+				server.baseUrl
 			],
-			{ cwd: workspace, env: {} }
+			{
+				cwd: workspace,
+				env: { BRICKKEN_PRIVATE_KEY: PRINCIPAL_PRIVATE_KEY }
+			}
 		);
 
-		assert.notEqual(result.status, 0);
-		assert.match(result.stderr, /Brickken API key is required/i);
+		assert.equal(result.status, 0, result.stderr);
+		assert.equal(server.requests.length, 2);
+		assert.equal(server.requests[0].headers['x-api-key'], undefined);
+		assert.equal(server.requests[0].headers['x-payment'], undefined);
+		assert.ok(server.requests[1].headers['x-payment']);
+
+		const paymentPayload = JSON.parse(
+			Buffer.from(server.requests[1].headers['x-payment'], 'base64').toString('utf8')
+		);
+		assert.equal(paymentPayload.accepted.amount, '1000');
+		assert.equal(paymentPayload.accepted.network, 'eip155:84532');
+		assert.equal(paymentPayload.payload.authorization.from, PRINCIPAL_WALLET.address);
+
+		const output = JSON.parse(result.stdout);
+		assert.equal(output.data.frozen, false);
+		assert.equal(output._x402.requirement.extra.displayPrice, '0.001 USDC');
+		assert.equal(output._x402.settlement.success, true);
 	} finally {
+		await server.close();
 		await fs.rm(workspace, { recursive: true, force: true });
 	}
 });
