@@ -1,6 +1,6 @@
 ---
 name: brickken
-description: Use Brickken dapp API, Agentic API, CLI, and MCP for tokenization, STO, ERC-8004 agent, reputation, and agent-owned token workflows. Use when Codex needs to help an AI agent choose between API-key access, x402/private-key access, the brickken CLI, or the Brickken MCP; prepare or send Brickken transactions; explain required credentials; build safe command/API payloads; or troubleshoot Brickken API/CLI/MCP usage.
+description: Use Brickken dapp API, Agentic API, CLI, and MCP for tokenization, STO, ERC-8004 agent, reputation, agent-owned token, and ERC-8226 RAMS agent-mandate workflows. Use when Codex needs to help an AI agent choose between API-key access, x402/private-key access, the brickken CLI, or the Brickken MCP; grant, revoke, extend, or inspect a RAMS mandate; prepare or send Brickken transactions; explain required credentials; build safe command/API payloads; or troubleshoot Brickken API/CLI/MCP usage.
 ---
 
 # Brickken
@@ -10,9 +10,11 @@ description: Use Brickken dapp API, Agentic API, CLI, and MCP for tokenization, 
 Use this skill to route Brickken tasks to the correct surface:
 
 - **dapp API**: API-key authenticated tokenization, STO, security-token, and read workflows.
-- **Agentic API**: x402-paid ERC-8004 agent identity, reputation, and agent-owned ERC-20 workflows.
+- **Agentic API**: x402-paid ERC-8004 agent identity, reputation, agent-owned ERC-20, and RAMS mandate workflows.
 - **CLI**: local terminal execution for Agentic API flows, bundled as `brickken-cli`.
 - **MCP**: MCP-compatible AI agent interface for dapp API and Agentic API tools.
+
+**RAMS** is the Regulated Agent Mandate Standard (ERC-8226): a principal grants an agent a scoped, time-bounded, value-capped authority over a specific asset, enforced on-chain by `AgentMandate`, `ComplianceProvider`, and `AgentExecutor`. It is available on Ethereum Sepolia only (`11155111`), through `brickken rams` on the CLI and the `rams_*` MCP tools.
 
 Never ask the user to paste secrets into chat. Use environment variable placeholders (`BRICKKEN_API_KEY`, `BRICKKEN_PRIVATE_KEY`) and explain where the agent/runtime must configure them.
 
@@ -22,11 +24,12 @@ Never ask the user to paste secrets into chat. Use environment variable placehol
 2. If the user has no API key and wants ERC-8004 agent or agent-token operations, use the **Agentic API** with x402/private-key signing. Read `references/agentic-api.md`.
 3. If a shell is available and the task is Agentic API execution, prefer the **CLI**. Read `references/cli.md`.
 4. If the user is in an MCP-compatible agent surface or explicitly asks for MCP, use the **Brickken MCP**. Read `references/mcp.md`.
-5. If no API key, no private key, and no configured MCP session exists, stop before execution and explain which credential/surface is missing.
+5. If the task is about delegating authority to an agent, mandate lifecycle, execution caps, freezing an agent, or principal compliance, it is a **RAMS** task. Read the RAMS section of `references/cli.md` for commands or `references/mcp.md` for tools, and `references/agentic-api.md` for the raw endpoints.
+6. If no API key, no private key, and no configured MCP session exists, stop before execution and explain which credential/surface is missing.
 
 ## Credential Rules
 
-- `BRICKKEN_API_KEY`: dapp API authentication. Do not use it for CLI x402 flows.
+- `BRICKKEN_API_KEY`: dapp API authentication. Do not use it for CLI x402 writes. It is optional for RAMS reads and typed-data fetches, which fall back to a 0.001 USDC x402 payment when it is absent.
 - `BRICKKEN_PRIVATE_KEY` / `BKN_PRIVATE_KEY`: Agentic API x402 payment signing and transaction signing. Never print it.
 - `BRICKKEN_RPC_URL` / `BKN_RPC_URL`: optional receipt lookup RPC, especially for `create-token --execute`.
 - `BRICKKEN_ENV`: `forge`, `sandbox`, or `production`. Default CLI environment is `sandbox`; `forge` targets `https://d4aqanatl1.execute-api.eu-west-1.amazonaws.com/forge`.
@@ -81,6 +84,6 @@ or:
 ## Reference Files
 
 - `references/dapp-api.md`: API-key endpoints, prepare/sign/send, reads.
-- `references/agentic-api.md`: x402 flow, facade endpoints, method fields, pricing.
-- `references/cli.md`: CLI installation, env vars, commands, examples.
-- `references/mcp.md`: hosted MCP URL, session configuration, tool names.
+- `references/agentic-api.md`: x402 flow, facade endpoints (including RAMS), RAMS reads and typed data, method fields, pricing.
+- `references/cli.md`: CLI installation, env vars, commands, the `brickken rams` command table, examples.
+- `references/mcp.md`: hosted MCP URL, session configuration, tool names (including `rams_*`).

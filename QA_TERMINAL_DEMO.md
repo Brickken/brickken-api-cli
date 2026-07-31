@@ -13,6 +13,13 @@ The demo covers:
 - agentic token approval
 - agentic token transfer
 - agentic token transfer-from
+- RAMS principal compliance check
+- RAMS mandate grant through a relayed EIP-712 signature
+- RAMS mandate inspection
+- RAMS execution preflight
+- RAMS executor call
+
+RAMS is the Regulated Agent Mandate Standard (ERC-8226): a principal grants an agent a scoped, time-bounded, value-capped authority over a specific asset. The RAMS steps are optional and only run on Ethereum Sepolia; see the prerequisite note in step 10 before starting them.
 
 ## Prerequisites
 
@@ -27,9 +34,9 @@ Before starting, make sure QA has all of the following:
 - the API base URL for the environment under test
 - a working RPC URL for the chain under test
 
-This demo is x402-based. Do not use or export API keys. `BRICKKEN_API_KEY` and `BKN_API_KEY` are ignored by the CLI.
+This demo is x402-based. Do not use or export API keys. Transaction writes ignore `BRICKKEN_API_KEY` and `BKN_API_KEY` entirely, and leaving them unset is what makes the RAMS read steps exercise the x402 payment path instead of API-key authentication.
 
-Budget Sepolia USDC for prepare and send charges. Each executed command can consume roughly `0.02 USDC` because both prepare and send are x402-priced. For the full extended flow below, keep at least `0.25 USDC` available to absorb retries.
+Budget Sepolia USDC for prepare and send charges. Each executed command can consume roughly `0.02 USDC` because both prepare and send are x402-priced. Each RAMS read (`compliance-status`, `inspect`, `can-execute`) and each online `rams sign` adds about `0.001 USDC`. For the full extended flow below, keep at least `0.25 USDC` available to absorb retries; add another `0.05 USDC` if you run the RAMS steps.
 
 ## Recommended CLI Version
 
@@ -40,7 +47,7 @@ npm install -g brickken-cli@latest
 brickken --version
 ```
 
-Use `0.4.5` or newer. This version includes the top-level `create-token`, `mint`, `burn`, `approve`, `transfer`, and `transfer-from` commands.
+Use `0.4.10` or newer. `0.4.5` introduced the top-level `create-token`, `mint`, `burn`, `approve`, `transfer`, and `transfer-from` commands; `0.4.10` is the first version whose bundled docs and skill reflect the `brickken rams` command group with x402-payable reads, so the RAMS steps below assume it.
 
 If the CLI is older, top-level token commands may still call legacy non-agentic methods and return `401 API key is required for this method`.
 
@@ -81,6 +88,21 @@ export SPENDER_WALLET="$WALLET"
 
 `OWNER_EMAIL` is optional for agentic methods. Keep it only if your environment wants an attribution email for tracing or analytics.
 
+Variables for the optional RAMS steps. For a single-key smoke test the agent and the principal can be the same wallet:
+
+```bash
+export AGENT="$WALLET"
+export PRINCIPAL="$WALLET"
+export IDENTITY_REF="0x0000000000000000000000000000000000000000000000000000000000000001"
+export VALID_UNTIL="$(( $(date +%s) + 2592000 ))"
+```
+
+`ASSET` is the ERC-20 the mandate authorizes. Reuse the token deployed in step 4 once `TOKEN_ADDRESS` is set:
+
+```bash
+export ASSET="$TOKEN_ADDRESS"
+```
+
 Sanity checks:
 
 ```bash
@@ -88,6 +110,7 @@ brickken --version
 brickken approve --help >/dev/null
 brickken transfer --help >/dev/null
 brickken transfer-from --help >/dev/null
+brickken rams --help >/dev/null
 test -n "$BRICKKEN_PRIVATE_KEY" && echo "private key ok" || echo "private key missing"
 test -n "$BRICKKEN_RPC_URL" && echo "rpc ok" || echo "rpc missing"
 command -v jq
@@ -324,6 +347,136 @@ Expected result:
 
 - `sent.success` is `true`
 
+## 10. Check RAMS Principal Compliance
+
+Read this before running any RAMS step. A mandate can only be granted to a principal that is already eligible on the ComplianceProvider. Making a principal eligible is `brickken rams grant-principal`, which must be signed by the compliance provider owner. QA does not normally hold that key, so treat this step as a gate: if the principal is not eligible, stop and ask the backend team to grant it rather than trying to grant it yourself.
+
+RAMS is deployed on Ethereum Sepolia only, so keep `CHAIN` at `11155111` for steps 10 to 14.
+
+```bash
+brickken --base-url "$BASE_URL" rams compliance-status \
+  --chain "$CHAIN" \
+  --principal "$PRINCIPAL" \
+  --identity-ref "$IDENTITY_REF" \
+  --json | tee rams-compliance-output.json
+```
+
+Expected result:
+
+- `eligible` is `true`
+- if `eligible` is `false`, read `reason` and stop here
+
+This is a read, so no API key is exported and the CLI settles roughly `0.001 USDC` through x402 instead.
+
+## 11. Sign the Mandate Typed Data
+
+The principal signs the EIP-712 `grantMandate` envelope locally. `--action 0x23b872dd` is the `transferFrom` selector, which is what step 14 exercises.
+
+```bash
+brickken --base-url "$BASE_URL" rams sign \
+  --operation grant-mandate \
+  --chain "$CHAIN" \
+  --agent "$AGENT" \
+  --principal "$PRINCIPAL" \
+  --valid-until "$VALID_UNTIL" \
+  --identity-ref "$IDENTITY_REF" \
+  --asset "$ASSET" \
+  --max-transaction-value 1000000 \
+  --max-cumulative-value 5000000 \
+  --action 0x23b872dd \
+  --json | tee rams-signature.json
+```
+
+Expected result:
+
+- `signature` and `deadline` are both present
+
+```bash
+jq -r '.signature' rams-signature.json
+jq -r '.deadline' rams-signature.json
+```
+
+Do not continue if either value is empty.
+
+## 12. Grant the Mandate
+
+Submit the signed envelope in relayed mode. `--signer-address` is deliberately omitted: Brickken supplies its own operation signer, and the configured private key only authorizes the x402 payment.
+
+```bash
+brickken --base-url "$BASE_URL" rams grant \
+  --chain "$CHAIN" \
+  --agent "$AGENT" \
+  --principal "$PRINCIPAL" \
+  --valid-until "$VALID_UNTIL" \
+  --identity-ref "$IDENTITY_REF" \
+  --asset "$ASSET" \
+  --max-transaction-value 1000000 \
+  --max-cumulative-value 5000000 \
+  --action 0x23b872dd \
+  --signature "$(jq -r .signature rams-signature.json)" \
+  --deadline "$(jq -r .deadline rams-signature.json)" \
+  --execution-mode brickken-relayed \
+  --execute \
+  --json | tee rams-grant-output.json
+```
+
+Expected result:
+
+- `sent.success` is `true`
+
+## 13. Inspect the Mandate
+
+```bash
+brickken --base-url "$BASE_URL" rams inspect \
+  --chain "$CHAIN" \
+  --agent "$AGENT" \
+  --principal "$PRINCIPAL" \
+  --json | tee rams-inspect-output.json
+```
+
+Expected result:
+
+- `status` is `active`
+- `frozen` is `false`
+- the returned caps match the values sent in step 12
+
+## 14. Preflight and Run an Execution
+
+Preflight first. `can-execute` returns the authoritative on-chain result plus a per-check breakdown that explains any refusal:
+
+```bash
+brickken --base-url "$BASE_URL" rams can-execute \
+  --chain "$CHAIN" \
+  --agent "$AGENT" \
+  --principal "$PRINCIPAL" \
+  --asset "$ASSET" \
+  --amount 1000 \
+  --selector 0x23b872dd \
+  --json | tee rams-can-execute-output.json
+```
+
+Expected result:
+
+- `canExecute` is `true`; if it is `false`, read the per-check breakdown before changing anything
+
+Then run the executor call. This one is signed by the agent and is never Brickken-relayed, so `--signer-address` is required:
+
+```bash
+brickken --base-url "$BASE_URL" rams execute \
+  --chain "$CHAIN" \
+  --signer-address "$AGENT" \
+  --asset "$ASSET" \
+  --from "$PRINCIPAL" \
+  --to "$RECIPIENT_WALLET" \
+  --amount 1000 \
+  --execute \
+  --json | tee rams-execute-output.json
+```
+
+Expected result:
+
+- `sent.success` is `true`
+
 ## Demo Checklist
 
 At the end of the flow, QA should have:
@@ -338,6 +491,15 @@ At the end of the flow, QA should have:
 - one successful `transfer`
 - one successful `transfer-from`
 
+If the RAMS steps were run, also:
+
+- one `rams compliance-status` reporting `eligible` `true`
+- one signed mandate envelope from `rams sign`
+- one successful `rams grant`
+- one `rams inspect` reporting `status` `active`
+- one `rams can-execute` reporting `canExecute` `true`
+- one successful `rams execute`
+
 Useful checks:
 
 ```bash
@@ -350,6 +512,17 @@ jq -r '.sent.success' burn-output.json
 jq -r '.sent.success' approve-output.json
 jq -r '.sent.success' transfer-output.json
 jq -r '.sent.success' transfer-from-output.json
+```
+
+RAMS checks:
+
+```bash
+jq -r '.eligible' rams-compliance-output.json
+jq -r '.signature // empty' rams-signature.json
+jq -r '.sent.success' rams-grant-output.json
+jq -r '.status' rams-inspect-output.json
+jq -r '.canExecute' rams-can-execute-output.json
+jq -r '.sent.success' rams-execute-output.json
 ```
 
 ## Troubleshooting
@@ -387,3 +560,31 @@ jq -r '.sent.success' transfer-from-output.json
 
 - The backend environment accepted `agent register` but cannot resolve the stored agent reference for later mutations.
 - Re-run the full agent flow against `sandbox` or another environment with agent persistence enabled.
+
+`eligible` is `false` from `rams compliance-status`
+
+- The principal is not registered on the ComplianceProvider, or its eligibility expired.
+- Read `reason` for the specific code.
+- Do not continue to `rams grant`. Granting eligibility is `rams grant-principal`, which requires the compliance provider owner key.
+
+`status` is `none` from `rams inspect`
+
+- No mandate exists for that exact agent/principal pair on that chain.
+- Check `rams-grant-output.json` first: if `sent.success` is `false`, the grant never landed.
+- Confirm `AGENT` and `PRINCIPAL` are the same values used in steps 11 and 12. A mandate is keyed on the pair, so a single mismatched address reads as no mandate.
+
+`canExecute` is `false` from `rams can-execute`
+
+- Read the per-check breakdown in the response instead of guessing; it names the failing check.
+- Common causes: the amount exceeds `maxTransactionValue`, the cumulative total exceeds `maxCumulativeValue`, the mandate is expired or not yet valid, the agent is frozen, or the selector is not in the mandate's allowed actions.
+
+`rams execute` is rejected for an unsupported selector
+
+- The AgentExecutor has no registered ActionSpec for that selector.
+- Confirm with `brickken rams executor-action --chain "$CHAIN" --selector 0x23b872dd --json` and check `supported`.
+- Registering one is `rams set-action`, which requires the executor owner key.
+
+RAMS commands fail on a non-Sepolia chain
+
+- RAMS is deployed on Ethereum Sepolia only. Keep `CHAIN` at `11155111`.
+- The backend resolves the AgentMandate, ComplianceProvider, and AgentExecutor addresses per chain, so other chains have no contracts configured.

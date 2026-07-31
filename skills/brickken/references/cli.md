@@ -16,7 +16,7 @@ npx brickken-cli --help
 
 ## Auth and Config
 
-Writes use x402 and never send an API key. RAMS reads and typed-data fetches require `BRICKKEN_API_KEY` / `BKN_API_KEY`.
+Writes use x402 and never send an API key. RAMS reads and typed-data fetches use an API key when one is configured (`BRICKKEN_API_KEY` / `BKN_API_KEY`); otherwise they pay 0.001 USDC through x402, so the API key is optional.
 
 ```bash
 export BRICKKEN_API_KEY=...
@@ -28,7 +28,7 @@ Aliases:
 
 | Variable | Alias | Purpose |
 | --- | --- | --- |
-| `BRICKKEN_API_KEY` | `BKN_API_KEY` | RAMS read and typed-data authentication |
+| `BRICKKEN_API_KEY` | `BKN_API_KEY` | Optional RAMS read and typed-data authentication; without it those calls pay through x402 |
 | `BRICKKEN_PRIVATE_KEY` | `BKN_PRIVATE_KEY` | x402 + transaction signing |
 | `BRICKKEN_RPC_URL` | `BKN_RPC_URL` | Receipt polling |
 | `BRICKKEN_BASE_URL` | `BKN_BASE_URL` | API base override |
@@ -44,6 +44,7 @@ Global flags: `--env`, `--base-url`, `--api-key`, `--private-key`, `--rpc-url`, 
 | `brickken agent set-uri` | `agentSetURI` | Update profile URI |
 | `brickken agent set-metadata` | `agentSetMetadata` | Write metadata |
 | `brickken agent set-wallet` | `agentSetWallet` | Update wallet |
+| `brickken agent transfer-ownership` | `agentTransferOwnership` | Transfer agent ownership |
 | `brickken agent feedback give` | `agentGiveFeedback` | Give feedback |
 | `brickken agent feedback revoke` | `agentRevokeFeedback` | Revoke feedback |
 | `brickken agent feedback respond` | `agentAppendFeedbackResponse` | Respond to feedback |
@@ -57,8 +58,12 @@ Global flags: `--env`, `--base-url`, `--api-key`, `--private-key`, `--rpc-url`, 
 | `brickken tx sign` | local | Sign prepared tx JSON |
 | `brickken tx send` | `/send-transactions` | Send signed tx |
 | `brickken tx status` | `/get-transaction-status` | Poll status |
+| `brickken skill path` | local | Print the bundled Brickken skill path |
+| `brickken skill install` | local | Copy the bundled skill into a skills directory |
 
-### RAMS (ERC-8226)
+### RAMS — Regulated Agent Mandate Standard (ERC-8226)
+
+RAMS lets a principal grant an agent a scoped, time-bounded, value-capped authority over a specific asset, enforced on-chain by `AgentMandate` (mandate registry), `ComplianceProvider` (principal eligibility), and `AgentExecutor` (the gated call surface). Currently deployed on Ethereum Sepolia only (`11155111`).
 
 | Command | Backend operation | Signer / purpose |
 | --- | --- | --- |
@@ -79,7 +84,9 @@ Global flags: `--env`, `--base-url`, `--api-key`, `--private-key`, `--rpc-url`, 
 | `brickken rams executor-action` | `GET /rams/executor-action` | ActionSpec lookup (`supported`, `hasAmount`, `amountIndex`) |
 | `brickken rams sign` | `GET /rams/typed-data/{operation}` or local file | Sign grant/revoke/extend/set-operator typed data locally |
 
-All writes accept `--file`; add `--execute` for prepare → local transaction signing → send. `grant`, `revoke`, `extend`, and `set-operator` additionally accept `--signature`, `--deadline`, and `--execution-mode brickken-relayed`; omit `--signer-address` in that mode because Brickken supplies its operation signer. `rams sign --typed-data-file envelope.json` signs offline and does not require an API key.
+All writes accept `--file`; add `--execute` for prepare → local transaction signing → send. `grant`, `revoke`, `extend`, and `set-operator` additionally accept `--signature`, `--deadline`, and `--execution-mode brickken-relayed`; omit `--signer-address` in that mode because Brickken supplies its operation signer.
+
+The five read commands and the online form of `rams sign` use an API key when one is configured; without one they pay 0.001 USDC through x402 using the configured private key. `rams sign --typed-data-file envelope.json` signs an already-fetched envelope offline, so it needs neither an API key nor a payment. `rams grant` only succeeds for a principal already eligible on the ComplianceProvider: check with `rams compliance-status` first.
 
 Values are raw base units. `max` and `unlimited` are accepted for uint256 caps. Actions accept a bytes32 value or a 4-byte selector; repeat `--action` or use a comma-separated value.
 

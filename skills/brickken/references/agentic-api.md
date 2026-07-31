@@ -1,6 +1,6 @@
 # Agentic API Reference
 
-Use the Agentic API for ERC-8004 agent identity/reputation, agent-owned ERC-20 operations, and ERC-8226 RAMS writes. Writes are paid through x402 and blockchain transactions are signed locally. RAMS reads and EIP-712 typed-data fetches are the exception: they use `x-api-key`.
+Use the Agentic API for ERC-8004 agent identity/reputation, agent-owned ERC-20 operations, and writes for RAMS, the Regulated Agent Mandate Standard (ERC-8226). Writes are paid through x402 and blockchain transactions are signed locally. RAMS reads and EIP-712 typed-data fetches accept either scheme: they use `x-api-key` when one is sent, and otherwise fall back to a 0.001 USDC x402 payment.
 
 Base URLs:
 
@@ -53,7 +53,7 @@ RAMS facades default to `client-signed`. Only grant, revoke, extend, and set-ope
 
 ## RAMS Reads and Typed Data
 
-Authenticated reads: `GET /rams/mandate`, `/rams/can-execute`, `/rams/status`, `/rams/compliance-status`, and `/rams/executor-action`.
+Reads: `GET /rams/mandate`, `/rams/can-execute`, `/rams/status`, `/rams/compliance-status`, and `/rams/executor-action`. Send `x-api-key` to authenticate them, or omit it and settle the returned `402` with an x402 payment exactly as for writes.
 
 Typed data: `GET /rams/typed-data/{grant-mandate|revoke-mandate|extend-mandate|set-operator}`. Sign the complete returned `typedData` locally, then submit the same operation fields with the returned `deadline` and signature. The nonce is shared per principal and is fetched on-chain; never default it to zero.
 

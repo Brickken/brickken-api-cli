@@ -297,7 +297,19 @@ The high-level `create-token`, `mint`, `burn`, `transfer`, `transfer-from`, and 
 
 ## RAMS Mandate Flow
 
+**RAMS** is the **Regulated Agent Mandate Standard** (ERC-8226): a principal grants an agent a scoped, time-bounded, value-capped authority over a specific asset, enforced on-chain by `AgentMandate` (the mandate registry), `ComplianceProvider` (principal eligibility), and `AgentExecutor` (the gated call surface). It is currently deployed on Ethereum Sepolia only (`11155111`).
+
 `brickken rams` exposes ten write commands, five API-key-or-x402 read commands, and local EIP-712 signing. Writes prepare only by default; add `--execute` to sign/send and settle x402. Online typed-data fetching follows the same API-key-or-0.001-USDC-x402 policy.
+
+A mandate can only be granted to a principal that is already eligible on the ComplianceProvider. Check that first, because `rams grant-principal` requires the provider owner key:
+
+```bash
+brickken rams compliance-status \
+  --chain 11155111 \
+  --principal "$PRINCIPAL" \
+  --identity-ref "$IDENTITY_REF" \
+  --json
+```
 
 Fetch typed data and sign it with the principal key:
 
@@ -342,6 +354,21 @@ Inspect the resulting mandate. The CLI sends the configured API key when availab
 ```bash
 brickken rams inspect --chain 11155111 --agent "$AGENT" --principal "$PRINCIPAL" --json
 ```
+
+Preflight an execution before spending gas on it. `can-execute` returns the authoritative on-chain `canExecute` result plus a per-check breakdown explaining any refusal:
+
+```bash
+brickken rams can-execute \
+  --chain 11155111 \
+  --agent "$AGENT" \
+  --principal "$PRINCIPAL" \
+  --asset "$ASSET" \
+  --amount 1000000 \
+  --selector 0x23b872dd \
+  --json
+```
+
+The other reads are `rams status` (freeze flag, current EIP-712 nonce, optional operator approval), `rams compliance-status` (principal eligibility), and `rams executor-action` (the AgentExecutor ActionSpec for a selector: `supported`, `hasAmount`, `amountIndex`).
 
 Run `brickken rams --help` and `brickken rams <command> --help` for the complete input surface. Lifecycle signature mode is supported only by `grant`, `revoke`, `extend`, and `set-operator`; executor and admin operations are never Brickken-relayed.
 
