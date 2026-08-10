@@ -42,7 +42,7 @@ brickken skill path
 
 ## Authentication
 
-Transaction writes use x402 and never send an API key. RAMS read and typed-data endpoints use an API key when configured, or a minimum 0.001 USDC x402 payment otherwise:
+Transaction writes use x402 and never send an API key. KYC link creation always requires an API key. Agent getters and RAMS read/typed-data endpoints use an API key when configured, or x402 otherwise. Agent getters cost 0.000001 USDC through x402; RAMS reads cost 0.001 USDC:
 
 ```bash
 export BRICKKEN_API_KEY=...
@@ -286,6 +286,7 @@ The high-level `create-token`, `mint`, `burn`, `transfer`, `transfer-from`, and 
 ## Command Groups
 
 - `brickken agent`: ERC-8004 identity and reputation operations
+- `brickken kyc`: API-key-authenticated investor KYC link creation
 - `brickken rams`: ERC-8226 mandate lifecycle, executor/compliance administration, reads, and EIP-712 signing
 - `brickken create-token`: deploy an agentic ERC-20 through the x402 flow
 - `brickken mint`: mint an agentic ERC-20 through the x402 flow
@@ -294,6 +295,27 @@ The high-level `create-token`, `mint`, `burn`, `transfer`, `transfer-from`, and 
 - `brickken transfer`: transfer ERC-20 tokens through the x402 flow
 - `brickken transfer-from`: transfer ERC-20 allowance through the x402 flow
 - `brickken tx`: raw prepare, sign, send, status, and one-shot execute flows
+
+## KYC and Agent Getters
+
+Create or reuse an investor and return a Sumsub verification link. This command always requires `BRICKKEN_API_KEY`:
+
+```bash
+brickken kyc create-link \
+  --email investor@example.com \
+  --need-kyc true \
+  --json
+```
+
+List agents visible to the API key, then fetch a profile and its transaction history:
+
+```bash
+brickken agent list --chain 84532 --limit 20 --offset 0 --json
+brickken agent info --agent-uuid "$AGENT_UUID" --json
+brickken agent transactions --agent-uuid "$AGENT_UUID" --limit 20 --offset 0 --json
+```
+
+Agent getters accept either API-key authentication or x402. In x402 mode, `agent list` requires both `--chain` and `--owner-wallet-address`, and the payment signer must own that wallet. Detail and transaction calls accept either `--agent-uuid`, or `--agent-id` together with `--chain`. Pagination limits are 1-100 and offsets must be non-negative.
 
 ## RAMS Mandate Flow
 

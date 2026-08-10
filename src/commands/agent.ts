@@ -11,11 +11,13 @@ import {
 } from '../internal/core';
 import {
 	collectValues,
+	runInfoCommand,
 	runPrepareCommand,
 	withExecuteOption,
 	withExecutionModeOption,
 	withFileOption
 } from './shared';
+import { normalizeChainId } from '../cli-config';
 
 type Mapper = (input: Record<string, any>) => Record<string, any>;
 
@@ -32,6 +34,27 @@ function withAgentReferenceOptions(command: Command): Command {
 	return command
 		.option('--agent-uuid <uuid>', 'Stored tokenized agent UUID')
 		.option('--agent-id <id>', 'On-chain ERC-8004 agent ID');
+}
+
+function withAgentReadReferenceOptions(command: Command): Command {
+	return withAgentReferenceOptions(command)
+		.option('--chain <chain>', 'Chain identifier (required with --agent-id)');
+}
+
+function withAgentPaginationOptions(command: Command): Command {
+	return command
+		.option('--limit <value>', 'Maximum results to return (1-100)')
+		.option('--offset <value>', 'Number of results to skip');
+}
+
+function buildAgentReferenceQuery(input: Record<string, any>): Record<string, any> {
+	if (input.agentUuid) return { agentUuid: input.agentUuid };
+	if (!input.agentId) throw new Error('Either --agent-uuid or --agent-id is required');
+	if (!input.chain && !input.chainId) throw new Error('--chain is required with --agent-id');
+	return {
+		agentId: input.agentId,
+		chainId: normalizeChainId(input.chainId || input.chain)
+	};
 }
 
 function withAgentProfileOptions(command: Command): Command {
@@ -73,6 +96,61 @@ export function registerAgentCommands(program: Command): void {
 	const agent = program
 		.command('agent')
 		.description('Manage ERC-8004 agent identity and reputation');
+
+	withAgentPaginationOptions(
+		agent.command('list')
+			.description('List API-scoped agents with API key or owner-scoped agents through x402')
+			.option('--chain <chain>', 'Optional chain filter; required for x402')
+			.option('--owner-wallet-address <address>', 'Optional owner filter; required for x402')
+	).action(async (options, command) => {
+		await runInfoCommand({
+			command,
+			options,
+			label: 'Agents',
+			path: '/get-agents',
+			supportsX402: true,
+			buildQuery: input => ({
+				chainId: input.chain ? normalizeChainId(input.chain) : undefined,
+				ownerWalletAddress: input.ownerWalletAddress,
+				limit: input.limit,
+				offset: input.offset
+			})
+		});
+	});
+
+	withAgentReadReferenceOptions(
+		agent.command('info')
+			.description('Get a complete agent profile by UUID or on-chain ID')
+	).action(async (options, command) => {
+		await runInfoCommand({
+			command,
+			options,
+			label: 'Agent info',
+			path: '/get-agent-info',
+			supportsX402: true,
+			buildQuery: buildAgentReferenceQuery
+		});
+	});
+
+	withAgentPaginationOptions(
+		withAgentReadReferenceOptions(
+			agent.command('transactions')
+				.description('List ERC-8004, agent-token, and RAMS transactions for an agent')
+		)
+	).action(async (options, command) => {
+		await runInfoCommand({
+			command,
+			options,
+			label: 'Agent transactions',
+			path: '/get-agent-transactions',
+			supportsX402: true,
+			buildQuery: input => ({
+				...buildAgentReferenceQuery(input),
+				limit: input.limit,
+				offset: input.offset
+			})
+		});
+	});
 
 	withExecuteOption(
 		withFileOption(

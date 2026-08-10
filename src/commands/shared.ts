@@ -105,6 +105,8 @@ export async function runDirectJsonCommand(params: {
 	path: string;
 	method?: JsonMethod;
 	mapInput?: Mapper;
+	requiresApiKey?: boolean;
+	supportsX402?: boolean;
 }): Promise<void> {
 	const config = resolveCliConfig(params.command);
 	const commandInput = await buildCommandInput(params.options, ['file']);
@@ -113,6 +115,8 @@ export async function runDirectJsonCommand(params: {
 	const result = await requestJson<any>(config, {
 		method: params.method || 'POST',
 		path: params.path,
+		apiKeyAuth: params.requiresApiKey,
+		apiKeyOrX402Auth: params.supportsX402,
 		data
 	});
 

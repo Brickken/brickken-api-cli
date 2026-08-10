@@ -1,6 +1,6 @@
 # Agentic API Reference
 
-Use the Agentic API for ERC-8004 agent identity/reputation, agent-owned ERC-20 operations, and writes for RAMS, the Regulated Agent Mandate Standard (ERC-8226). Writes are paid through x402 and blockchain transactions are signed locally. RAMS reads and EIP-712 typed-data fetches accept either scheme: they use `x-api-key` when one is sent, and otherwise fall back to a 0.001 USDC x402 payment.
+Use the Agentic API for ERC-8004 agent identity/reputation, agent-owned ERC-20 operations, and RAMS, the Regulated Agent Mandate Standard (ERC-8226). Writes are paid through x402 and blockchain transactions are signed locally. Agent getters, RAMS reads, and EIP-712 typed-data fetches use `x-api-key` when one is sent and otherwise fall back to x402.
 
 Base URLs:
 
@@ -20,6 +20,29 @@ Base URLs:
 6. Submit signed transactions to `POST /send-transactions`, using the same x402 retry flow if needed.
 
 Never hardcode x402 asset, amount, recipient, or network. Read them from `PAYMENT-REQUIRED`.
+
+## KYC Link Creation
+
+`POST /create-kyc-link` creates or reuses an investor and returns a Sumsub verification link. It always requires `x-api-key` and accepts:
+
+```json
+{
+  "email": "investor@example.com",
+  "needKyc": true
+}
+```
+
+Creating a link can create the investor record and send an invitation. Treat the returned URL as sensitive and do not log or commit it.
+
+## Agent Getters
+
+| Endpoint | Query |
+| --- | --- |
+| `GET /get-agents` | Optional `chainId`, `ownerWalletAddress`, `limit`, `offset` with API key |
+| `GET /get-agent-info` | `agentUuid`, or `agentId` with `chainId` |
+| `GET /get-agent-transactions` | Agent reference plus optional `limit`, `offset` |
+
+All three getters accept API-key authentication or x402. In x402 mode, `/get-agents` requires `chainId` and `ownerWalletAddress`, and the payment signer must match the owner wallet. The x402 price is 0.000001 USDC. Limits are 1-100 and offsets must be non-negative.
 
 ## Facade Endpoints
 

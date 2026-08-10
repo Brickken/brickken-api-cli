@@ -9,8 +9,8 @@ description: Use Brickken dapp API, Agentic API, CLI, and MCP for tokenization, 
 
 Use this skill to route Brickken tasks to the correct surface:
 
-- **dapp API**: API-key authenticated tokenization, STO, security-token, and read workflows.
-- **Agentic API**: x402-paid ERC-8004 agent identity, reputation, agent-owned ERC-20, and RAMS mandate workflows.
+- **dapp API**: API-key authenticated tokenization, STO, security-token, KYC-link, and read workflows.
+- **Agentic API**: x402-paid ERC-8004 agent identity, reputation, agent-owned ERC-20, RAMS mandate, and API-key-or-x402 agent getter workflows.
 - **CLI**: local terminal execution for Agentic API flows, bundled as `brickken-cli`.
 - **MCP**: MCP-compatible AI agent interface for dapp API and Agentic API tools.
 
@@ -20,7 +20,7 @@ Never ask the user to paste secrets into chat. Use environment variable placehol
 
 ## Surface Selection
 
-1. If the user has a Brickken API key and needs tokenization/STO/security-token operations, use the **dapp API**. Read `references/dapp-api.md`.
+1. If the user has a Brickken API key and needs tokenization/STO/security-token or KYC-link operations, use the **dapp API**. Read `references/dapp-api.md` and the KYC section of `references/agentic-api.md`.
 2. If the user has no API key and wants ERC-8004 agent or agent-token operations, use the **Agentic API** with x402/private-key signing. Read `references/agentic-api.md`.
 3. If a shell is available and the task is Agentic API execution, prefer the **CLI**. Read `references/cli.md`.
 4. If the user is in an MCP-compatible agent surface or explicitly asks for MCP, use the **Brickken MCP**. Read `references/mcp.md`.
@@ -29,7 +29,7 @@ Never ask the user to paste secrets into chat. Use environment variable placehol
 
 ## Credential Rules
 
-- `BRICKKEN_API_KEY`: dapp API authentication. Do not use it for CLI x402 writes. It is optional for RAMS reads and typed-data fetches, which fall back to a 0.001 USDC x402 payment when it is absent.
+- `BRICKKEN_API_KEY`: required for dapp API and KYC link creation. Do not use it for CLI x402 writes. It is optional for agent getters and RAMS reads/typed-data fetches, which fall back to x402 when it is absent.
 - `BRICKKEN_PRIVATE_KEY` / `BKN_PRIVATE_KEY`: Agentic API x402 payment signing and transaction signing. Never print it.
 - `BRICKKEN_RPC_URL` / `BKN_RPC_URL`: optional receipt lookup RPC, especially for `create-token --execute`.
 - `BRICKKEN_ENV`: `forge`, `sandbox`, or `production`. Default CLI environment is `sandbox`; `forge` targets `https://d4aqanatl1.execute-api.eu-west-1.amazonaws.com/forge`.

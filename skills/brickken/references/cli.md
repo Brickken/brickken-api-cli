@@ -16,7 +16,7 @@ npx brickken-cli --help
 
 ## Auth and Config
 
-Writes use x402 and never send an API key. RAMS reads and typed-data fetches use an API key when one is configured (`BRICKKEN_API_KEY` / `BKN_API_KEY`); otherwise they pay 0.001 USDC through x402, so the API key is optional.
+Writes use x402 and never send an API key. KYC link creation always requires an API key. Agent getters and RAMS reads/typed-data fetches use an API key when one is configured (`BRICKKEN_API_KEY` / `BKN_API_KEY`); otherwise they pay through x402. Agent getters cost 0.000001 USDC and RAMS reads cost 0.001 USDC.
 
 ```bash
 export BRICKKEN_API_KEY=...
@@ -28,7 +28,7 @@ Aliases:
 
 | Variable | Alias | Purpose |
 | --- | --- | --- |
-| `BRICKKEN_API_KEY` | `BKN_API_KEY` | Optional RAMS read and typed-data authentication; without it those calls pay through x402 |
+| `BRICKKEN_API_KEY` | `BKN_API_KEY` | Required for KYC links; optional for agent getters and RAMS reads, which otherwise pay through x402 |
 | `BRICKKEN_PRIVATE_KEY` | `BKN_PRIVATE_KEY` | x402 + transaction signing |
 | `BRICKKEN_RPC_URL` | `BKN_RPC_URL` | Receipt polling |
 | `BRICKKEN_BASE_URL` | `BKN_BASE_URL` | API base override |
@@ -40,6 +40,10 @@ Global flags: `--env`, `--base-url`, `--api-key`, `--private-key`, `--rpc-url`, 
 
 | Command | Method | Purpose |
 | --- | --- | --- |
+| `brickken kyc create-link` | `POST /create-kyc-link` | Create or reuse an investor and return a KYC verification link |
+| `brickken agent list` | `GET /get-agents` | List API-key-scoped or x402 owner-scoped agents |
+| `brickken agent info` | `GET /get-agent-info` | Get an agent by UUID or on-chain ID and chain |
+| `brickken agent transactions` | `GET /get-agent-transactions` | List an agent's transactions with pagination |
 | `brickken agent register` | `agentRegister` | Register ERC-8004 agent |
 | `brickken agent set-uri` | `agentSetURI` | Update profile URI |
 | `brickken agent set-metadata` | `agentSetMetadata` | Write metadata |
@@ -92,7 +96,22 @@ Values are raw base units. `max` and `unlimited` are accepted for uint256 caps. 
 
 High-level commands are prepare-only by default. Add `--execute` to prepare, sign, send, and pay through x402. Add `--json` for automation.
 
+KYC link creation requires `--email`; `--need-kyc` accepts `true` or `false` and defaults to `true` on the API. Agent detail and transaction calls require either `--agent-uuid`, or `--agent-id` with `--chain`. Agent list accepts `--chain`, `--owner-wallet-address`, `--limit`, and `--offset`. In x402 mode, both owner filters are required and the payment signer must match the owner wallet. Limits are 1-100 and offsets are non-negative.
+
 ## Examples
+
+Create a KYC link:
+
+```bash
+brickken kyc create-link --email investor@example.com --need-kyc true --json
+```
+
+Read an agent and its transactions:
+
+```bash
+brickken agent info --agent-uuid "$AGENT_UUID" --json
+brickken agent transactions --agent-uuid "$AGENT_UUID" --limit 20 --offset 0 --json
+```
 
 Register:
 
