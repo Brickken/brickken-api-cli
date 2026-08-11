@@ -3,8 +3,10 @@ export type { JsonRequestOptions } from './http';
 export {
 	normalizeChainId,
 	resolveConfigFromEnv,
+	getBaseUrlForEnvironment,
 	SANDBOX_BASE_URL,
-	PRODUCTION_BASE_URL
+	PRODUCTION_BASE_URL,
+	FORGE_BASE_URL
 } from './config';
 export {
 	signTransactionsLocally,
@@ -26,9 +28,22 @@ export {
 	mapAgentGiveFeedbackInput,
 	mapAgentRevokeFeedbackInput,
 	mapAgentAppendFeedbackResponseInput,
+	normalizeRamsActions,
+	mapRamsGrantMandateInput,
+	mapRamsRevokeMandateInput,
+	mapRamsExtendMandateInput,
+	mapRamsSetOperatorInput,
+	mapRamsExecuteInput,
+	mapRamsSetExecutorActionInput,
+	mapRamsFreezeAgentInput,
+	mapRamsUnfreezeAgentInput,
+	mapRamsGrantPrincipalInput,
+	mapRamsRevokePrincipalInput,
 	prepareBodyForMethod,
 	cleanInput
 } from './mappers';
+export { signTypedDataLocally } from './eip712';
+export type { Eip712TypedData } from './eip712';
 export {
 	buildX402PaymentHeader,
 	decodePaymentRequired,

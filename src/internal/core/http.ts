@@ -26,6 +26,8 @@ export interface JsonRequestOptions {
 	path: string;
 	query?: Record<string, Primitive | undefined>;
 	data?: any;
+	apiKeyAuth?: boolean;
+	apiKeyOrX402Auth?: boolean;
 }
 
 interface BaseRequestOptions extends JsonRequestOptions {
@@ -133,10 +135,21 @@ export async function requestJson<T>(
 	config: ResolvedConfig,
 	options: JsonRequestOptions
 ): Promise<T> {
+	if (options.apiKeyAuth && !config.apiKey) {
+		throw new Error(
+			'A Brickken API key is required for this endpoint. Set BRICKKEN_API_KEY or BKN_API_KEY, or pass --api-key.'
+		);
+	}
+
+	const useApiKey = Boolean(
+		config.apiKey && (options.apiKeyAuth || options.apiKeyOrX402Auth)
+	);
+
 	const requestOptions: BaseRequestOptions = {
 		...options,
 		headers: {
-			'Content-Type': 'application/json'
+			'Content-Type': 'application/json',
+			...(useApiKey ? { 'x-api-key': config.apiKey as string } : {})
 		}
 	};
 	const response = await sendRequest<T>(config, requestOptions);

@@ -2,6 +2,18 @@ import { BrickkenEnvironment, ResolvedConfig } from './types';
 
 export const SANDBOX_BASE_URL = 'https://api.sandbox.brickken.com';
 export const PRODUCTION_BASE_URL = 'https://api.brickken.com';
+export const FORGE_BASE_URL = 'https://d4aqanatl1.execute-api.eu-west-1.amazonaws.com/forge';
+
+export function getBaseUrlForEnvironment(env: BrickkenEnvironment): string {
+	switch (env) {
+		case 'forge':
+			return FORGE_BASE_URL;
+		case 'production':
+			return PRODUCTION_BASE_URL;
+		default:
+			return SANDBOX_BASE_URL;
+	}
+}
 
 const KNOWN_DECIMAL_CHAIN_IDS: Record<string, string> = {
 	'1': '1',
@@ -47,7 +59,7 @@ export function resolveConfigFromEnv(): ResolvedConfig {
 	const baseUrl =
 		process.env.BRICKKEN_BASE_URL ||
 		process.env.BKN_BASE_URL ||
-		(env === 'production' ? PRODUCTION_BASE_URL : SANDBOX_BASE_URL);
+		getBaseUrlForEnvironment(env);
 
 	return {
 		env,

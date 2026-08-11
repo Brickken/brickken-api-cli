@@ -5,8 +5,7 @@ import {
 	ResolvedConfig,
 	BrickkenEnvironment,
 	normalizeChainId,
-	SANDBOX_BASE_URL,
-	PRODUCTION_BASE_URL
+	getBaseUrlForEnvironment
 } from './internal/core';
 
 export { normalizeChainId };
@@ -14,6 +13,7 @@ export { normalizeChainId };
 export interface GlobalCliOptions {
 	env?: BrickkenEnvironment;
 	baseUrl?: string;
+	apiKey?: string;
 	privateKey?: string;
 	rpcUrl?: string;
 	envFile?: string;
@@ -63,11 +63,12 @@ export function resolveCliConfig(command: Command): ResolvedConfig & { outputJso
 		options.baseUrl ||
 		process.env.BRICKKEN_BASE_URL ||
 		process.env.BKN_BASE_URL ||
-		(env === 'production' ? PRODUCTION_BASE_URL : SANDBOX_BASE_URL);
+		getBaseUrlForEnvironment(env);
 
 	return {
 		env,
 		baseUrl,
+		apiKey: options.apiKey || process.env.BRICKKEN_API_KEY || process.env.BKN_API_KEY,
 		privateKey:
 			options.privateKey || process.env.BRICKKEN_PRIVATE_KEY || process.env.BKN_PRIVATE_KEY,
 		rpcUrl: options.rpcUrl || process.env.BRICKKEN_RPC_URL || process.env.BKN_RPC_URL,
