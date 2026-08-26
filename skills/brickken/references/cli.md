@@ -36,6 +36,12 @@ Aliases:
 
 Global flags: `--env`, `--base-url`, `--api-key`, `--private-key`, `--rpc-url`, `--env-file`, `--json`.
 
+## BKN Faucet
+
+`brickken faucet bkn --recipient-address <address> [--idempotency-key <uuid-v4>]` requests 100 BKN on Ethereum Sepolia. It uses an API key when configured or pays 0.01 USDC through x402 with the private key; configure exactly one. API keys have 10 dedicated lifetime faucet claims, separate from `mintToken`, and recipients have a 24-hour cooldown.
+
+The CLI generates and returns a UUID v4 when omitted. Use a new UUID for a new claim and reuse the same UUID only when retrying the same logical claim. The command exposes the Sandbox/Forge API-key and x402 route, not the public bearer flow.
+
 ## Commands
 
 | Command | Method | Purpose |

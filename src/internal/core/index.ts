@@ -1,5 +1,6 @@
 export { HttpError, requestJson } from './http';
 export type { JsonRequestOptions } from './http';
+export { isUuidV4, resolveUuidV4 } from './uuid';
 export {
 	normalizeChainId,
 	resolveConfigFromEnv,

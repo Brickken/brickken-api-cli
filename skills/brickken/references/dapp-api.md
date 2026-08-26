@@ -15,6 +15,10 @@ Auth header:
 x-api-key: $BRICKKEN_API_KEY
 ```
 
+## BKN Faucet
+
+`POST /faucet/bkn` requests 100 BKN on Ethereum Sepolia. Send `recipientAddress` in the JSON body and a UUID v4 in `Idempotency-Key`. Each API key has 10 dedicated lifetime faucet claims, separate from `mintToken`; the recipient cooldown is 24 hours. A new logical claim needs a new UUID, while a retry must reuse the original UUID.
+
 ## Write Flow
 
 1. `POST /prepare-transactions` with `method`, `chainId`, signer, and method fields.

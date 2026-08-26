@@ -7,6 +7,7 @@ import { registerRamsCommands } from './commands/rams';
 import { registerTokenEconomicsCommands } from './commands/economics';
 import { registerSkillCommands } from './commands/skill';
 import { registerKycCommands } from './commands/kyc';
+import { registerFaucetCommands } from './commands/faucet';
 
 function getPackageVersion(): string {
 	try {
@@ -39,6 +40,7 @@ export function buildProgram(): Command {
 
 	registerAgentCommands(program);
 	registerKycCommands(program);
+	registerFaucetCommands(program);
 	registerRamsCommands(program);
 	registerTokenEconomicsCommands(program);
 	registerTxCommands(program);

@@ -54,6 +54,27 @@ Provide a private key for local transaction signing and x402 payment signing:
 export BRICKKEN_PRIVATE_KEY=0x...
 ```
 
+## Sandbox BKN Faucet
+
+Request 100 BKN on Ethereum Sepolia with either an API key (10 dedicated lifetime claims, separate from `mintToken`) or a private key that pays 0.01 USDC through x402:
+
+```bash
+brickken faucet bkn \
+  --recipient-address 0x1111111111111111111111111111111111111111 \
+  --json
+```
+
+The CLI generates a UUID v4 and returns it as `idempotencyKey`. To retry the same logical claim, reuse it explicitly:
+
+```bash
+brickken faucet bkn \
+  --recipient-address 0x1111111111111111111111111111111111111111 \
+  --idempotency-key 4d0f91d8-453d-4fb5-a8e1-c722bc7b75a1 \
+  --json
+```
+
+Use a new UUID for a new claim; the same UUID with another recipient is rejected. Recipients have a 24-hour cooldown. This command is for Sandbox/Forge and exposes API-key or x402 auth only, not the public bearer flow. Do not configure both `--api-key` and `--private-key` for it.
+
 ## Quick Start
 
 The high-level commands are wallet-first and prepare-only by default. Add `--execute` to prepare, sign locally, send, and pay the API request through x402 in one step.

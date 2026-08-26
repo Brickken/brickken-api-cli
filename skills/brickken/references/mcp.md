@@ -43,7 +43,7 @@ Use `get_config` after `configure`. It returns `env`, `baseUrl`, `hasApiKey`, an
 
 ## Tools
 
-The server exposes 62 tools.
+The server exposes 63 tools.
 
 Configuration: `configure`, `get_config`.
 
@@ -51,6 +51,7 @@ Transactions: `prepare_transactions`, `send_transactions`, `get_transaction_stat
 
 dapp API tools:
 
+- `request_bkn_faucet` (Sandbox/Forge only; exactly one API key or private-key/x402 mode; optional UUID v4 is generated when omitted and returned for safe retries)
 - `create_kyc_link` (API key required; can create an investor and send an invitation)
 - `create_tokenization`
 - `create_sto`, `invest_in_sto`, `claim_sto`, `close_sto`

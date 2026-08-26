@@ -28,11 +28,11 @@ export interface JsonRequestOptions {
 	data?: any;
 	apiKeyAuth?: boolean;
 	apiKeyOrX402Auth?: boolean;
-}
-
-interface BaseRequestOptions extends JsonRequestOptions {
+	/** Non-authentication endpoint headers such as Idempotency-Key. */
 	headers?: Record<string, string>;
 }
+
+interface BaseRequestOptions extends JsonRequestOptions {}
 
 function buildHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
 	return {
@@ -149,6 +149,11 @@ export async function requestJson<T>(
 		...options,
 		headers: {
 			'Content-Type': 'application/json',
+			...Object.fromEntries(
+				Object.entries(options.headers || {}).filter(
+					([key]) => !['x-api-key', 'x-payment'].includes(key.toLowerCase())
+				)
+			),
 			...(useApiKey ? { 'x-api-key': config.apiKey as string } : {})
 		}
 	};
