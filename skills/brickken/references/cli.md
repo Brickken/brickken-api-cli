@@ -16,7 +16,7 @@ npx brickken-cli --help
 
 ## Auth and Config
 
-Writes use x402 and never send an API key. KYC link creation always requires an API key. Agent getters and RAMS reads/typed-data fetches use an API key when one is configured (`BRICKKEN_API_KEY` / `BKN_API_KEY`); otherwise they pay through x402. Agent getters cost 0.000001 USDC and RAMS reads cost 0.001 USDC.
+Dapp API requests and KYC link creation require an API key. Client-controlled Agentic API and RAMS requests use an API key when one is configured (`BRICKKEN_API_KEY` / `BKN_API_KEY`); otherwise they pay through x402. Relayed sends always use x402. Agent getters cost 0.000001 USDC and RAMS reads cost 0.001 USDC.
 
 ```bash
 export BRICKKEN_API_KEY=...
@@ -28,7 +28,7 @@ Aliases:
 
 | Variable | Alias | Purpose |
 | --- | --- | --- |
-| `BRICKKEN_API_KEY` | `BKN_API_KEY` | Required for KYC links; optional for agent getters and RAMS reads, which otherwise pay through x402 |
+| `BRICKKEN_API_KEY` | `BKN_API_KEY` | Dapp API, KYC, faucet, agent getters, RAMS, and client-controlled transaction requests |
 | `BRICKKEN_PRIVATE_KEY` | `BKN_PRIVATE_KEY` | x402 + transaction signing |
 | `BRICKKEN_RPC_URL` | `BKN_RPC_URL` | Receipt polling |
 | `BRICKKEN_BASE_URL` | `BKN_BASE_URL` | API base override |
@@ -47,6 +47,8 @@ The CLI generates and returns a UUID v4 when omitted. Use a new UUID for a new c
 | Command | Method | Purpose |
 | --- | --- | --- |
 | `brickken kyc create-link` | `POST /create-kyc-link` | Create or reuse an investor and return a KYC verification link |
+| `brickken dapp get` | Dapp API GET | Call a Dapp API read endpoint with an API key |
+| `brickken dapp request` | Dapp API POST/PATCH | Call a Dapp API JSON endpoint with an API key |
 | `brickken agent list` | `GET /get-agents` | List API-key-scoped or x402 owner-scoped agents |
 | `brickken agent info` | `GET /get-agent-info` | Get an agent by UUID or on-chain ID and chain |
 | `brickken agent transactions` | `GET /get-agent-transactions` | List an agent's transactions with pagination |
@@ -70,6 +72,33 @@ The CLI generates and returns a UUID v4 when omitted. Use a new UUID for a new c
 | `brickken tx status` | `/get-transaction-status` | Poll status |
 | `brickken skill path` | local | Print the bundled Brickken skill path |
 | `brickken skill install` | local | Copy the bundled skill into a skills directory |
+
+### Dapp API transaction and read commands
+
+Use `brickken tx prepare --method <method>` for Dapp API transaction methods. The command forwards the backend payload and sends `x-api-key` when `BRICKKEN_API_KEY` or `BKN_API_KEY` is configured. Sign the returned transactions with `brickken tx sign`, then submit them with `brickken tx send`.
+
+Supported Dapp transaction methods include `newTokenization`, `newSto`, `newInvest`, `claimTokens`, `closeOffer`, `mintToken`, `whitelist`, `burnToken`, `transferFrom`, `transferTo`, `approve`, and `dividendDistribution`.
+
+Use `brickken dapp get` for API-key-authenticated read endpoints:
+
+```bash
+brickken dapp get \
+  --path /get-token-info \
+  --query tokenSymbol=EXMPL \
+  --json
+```
+
+Use `brickken dapp request` for JSON POST or PATCH endpoints:
+
+```bash
+brickken dapp request \
+  --method POST \
+  --path /some-dapp-endpoint \
+  --file request.json \
+  --json
+```
+
+The CLI does not provide multipart file uploads. Use REST for endpoints such as `/patch-token-docs`.
 
 ### RAMS — Regulated Agent Mandate Standard (ERC-8226)
 
@@ -100,7 +129,7 @@ The five read commands and the online form of `rams sign` use an API key when on
 
 Values are raw base units. `max` and `unlimited` are accepted for uint256 caps. Actions accept a bytes32 value or a 4-byte selector; repeat `--action` or use a comma-separated value.
 
-High-level commands are prepare-only by default. Add `--execute` to prepare, sign, send, and pay through x402. Add `--json` for automation.
+High-level commands are prepare-only by default. With an API key, client-controlled requests use API-key authentication; without one, eligible Agentic API and RAMS requests use x402. Add `--execute` to prepare, sign, and send in one step. Relayed sends always use x402. Add `--json` for automation.
 
 KYC link creation requires `--email`; `--need-kyc` accepts `true` or `false` and defaults to `true` on the API. Agent detail and transaction calls require either `--agent-uuid`, or `--agent-id` with `--chain`. Agent list accepts `--chain`, `--owner-wallet-address`, `--limit`, and `--offset`. In x402 mode, both owner filters are required and the payment signer must match the owner wallet. Limits are 1-100 and offsets are non-negative.
 

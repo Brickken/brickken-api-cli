@@ -1,9 +1,10 @@
 # Brickken CLI
 
-Public x402-paid CLI for the [Brickken](https://brickken.com) agentic API.
+Public CLI for the [Brickken](https://brickken.com) Dapp API, Agentic API, KYC, faucet, and RAMS workflows.
 
 It covers:
 
+- API-key-authenticated Dapp API transaction and JSON endpoint workflows
 - ERC-8004 agent identity operations
 - ERC-8004 reputation feedback operations
 - ERC-8226 RAMS mandate lifecycle, compliance, executor, read, and EIP-712 signing operations
@@ -42,7 +43,7 @@ brickken skill path
 
 ## Authentication
 
-Transaction writes use x402 and never send an API key. KYC link creation always requires an API key. Agent getters and RAMS read/typed-data endpoints use an API key when configured, or x402 otherwise. Agent getters cost 0.000001 USDC through x402; RAMS reads cost 0.001 USDC:
+Dapp API requests use `BRICKKEN_API_KEY`. Agentic and RAMS client-controlled requests use the API key when configured, or x402 otherwise. `brickken-relayed` sends always use x402 because Brickken is the transaction relayer. KYC link creation requires an API key. Agent getters cost 0.000001 USDC through x402; RAMS reads cost 0.001 USDC:
 
 ```bash
 export BRICKKEN_API_KEY=...
@@ -75,9 +76,35 @@ brickken faucet bkn \
 
 Use a new UUID for a new claim; the same UUID with another recipient is rejected. Recipients have a 24-hour cooldown. This command is for Sandbox/Forge and exposes API-key or x402 auth only, not the public bearer flow. Do not configure both `--api-key` and `--private-key` for it.
 
+## Dapp API
+
+Use the CLI with an API key for legacy Dapp API tokenization, STO, security-token, and read workflows. Transaction methods use `brickken tx prepare` and `brickken tx send`; read endpoints use `brickken dapp get`. Use `brickken dapp request` for JSON POST or PATCH endpoints.
+
+Prepare a tokenization with a payload file:
+
+```bash
+export BRICKKEN_API_KEY=...
+
+brickken tx prepare \
+  --method newTokenization \
+  --file new-tokenization.json \
+  --json
+```
+
+Read token information:
+
+```bash
+brickken dapp get \
+  --path /get-token-info \
+  --query tokenSymbol=EXMPL \
+  --json
+```
+
+The CLI preserves the Dapp API prepare → sign → send flow. The signer wallet must be whitelisted, and the API key must have credits and access to the requested token or method. Multipart file uploads such as `/patch-token-docs` remain REST-only.
+
 ## Quick Start
 
-The high-level commands are wallet-first and prepare-only by default. Add `--execute` to prepare, sign locally, send, and pay the API request through x402 in one step.
+The high-level commands are wallet-first and prepare-only by default. With an API key, client-controlled requests use API-key authentication; without one, x402 is used for eligible Agentic API methods. Add `--execute` to prepare, sign locally, and send in one step. Relayed sends always use x402.
 
 Agentic operations do not require a tokenizer user in the Brickken database. `--owner-email` is optional metadata and can be omitted.
 
@@ -307,6 +334,7 @@ The high-level `create-token`, `mint`, `burn`, `transfer`, `transfer-from`, and 
 ## Command Groups
 
 - `brickken agent`: ERC-8004 identity and reputation operations
+- `brickken dapp`: API-key-authenticated Dapp API GET and JSON request operations
 - `brickken kyc`: API-key-authenticated investor KYC link creation
 - `brickken rams`: ERC-8226 mandate lifecycle, executor/compliance administration, reads, and EIP-712 signing
 - `brickken create-token`: deploy an agentic ERC-20 through the x402 flow
@@ -417,7 +445,7 @@ Run `brickken rams --help` and `brickken rams <command> --help` for the complete
 
 ## Raw Transaction Flow
 
-Use `brickken tx` when you want full control over the payload or you need to call a specific backend method directly.
+Use `brickken tx` when you want full control over the payload or need to call a specific Dapp or Agentic API transaction method directly. If `BRICKKEN_API_KEY` is configured, the CLI sends it for client-controlled prepare and send requests.
 
 One-shot execution:
 
@@ -438,6 +466,21 @@ Supported agentic token methods include:
 - `agentTransferFromToken`
 - `agentApproveToken`
 - `agentApprove` as a CLI alias that normalizes to `agentApproveToken`
+
+Dapp API transaction methods include:
+
+- `newTokenization`
+- `newSto`
+- `newInvest`
+- `claimTokens`
+- `closeOffer`
+- `mintToken`
+- `whitelist`
+- `burnToken`
+- `transferFrom`
+- `transferTo`
+- `approve`
+- `dividendDistribution`
 
 For manual control:
 
@@ -486,7 +529,7 @@ Global flags:
 
 Environment variables:
 
-- `BRICKKEN_API_KEY` or `BKN_API_KEY` (RAMS reads and typed-data only)
+- `BRICKKEN_API_KEY` or `BKN_API_KEY` (Dapp API, KYC, faucet, agent getters, and RAMS reads/typed-data; also client-controlled transaction requests when configured)
 - `BRICKKEN_PRIVATE_KEY` or `BKN_PRIVATE_KEY`
 - `BRICKKEN_BASE_URL` or `BKN_BASE_URL`
 - `BRICKKEN_RPC_URL` or `BKN_RPC_URL`

@@ -8,6 +8,7 @@ import { registerTokenEconomicsCommands } from './commands/economics';
 import { registerSkillCommands } from './commands/skill';
 import { registerKycCommands } from './commands/kyc';
 import { registerFaucetCommands } from './commands/faucet';
+import { registerDappCommands } from './commands/dapp';
 
 function getPackageVersion(): string {
 	try {
@@ -32,7 +33,7 @@ export function buildProgram(): Command {
 				.choices(['forge', 'sandbox', 'production'])
 		)
 		.option('--base-url <url>', 'Override the Brickken API base URL')
-		.option('--api-key <key>', 'Brickken API key used by authenticated KYC and read endpoints')
+		.option('--api-key <key>', 'Brickken API key used by Dapp, KYC, faucet, and read endpoints')
 		.option('--private-key <key>', 'Private key used for local signing and x402 payment flows')
 		.option('--rpc-url <url>', 'RPC URL used to wait for token deployment receipts')
 		.option('--env-file <path>', 'Optional env file to load before resolving config')
@@ -41,6 +42,7 @@ export function buildProgram(): Command {
 	registerAgentCommands(program);
 	registerKycCommands(program);
 	registerFaucetCommands(program);
+	registerDappCommands(program);
 	registerRamsCommands(program);
 	registerTokenEconomicsCommands(program);
 	registerTxCommands(program);

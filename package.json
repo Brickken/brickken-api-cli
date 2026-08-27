@@ -1,7 +1,7 @@
 {
 	"name": "brickken-cli",
-	"version": "0.4.12",
-	"description": "Brickken CLI for x402-paid agentic transaction workflows",
+	"version": "0.4.13",
+	"description": "Brickken CLI for Dapp API, x402-paid Agentic API, KYC, faucet, and RAMS workflows",
 	"keywords": [
 		"brickken",
 		"cli",

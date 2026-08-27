@@ -12,7 +12,7 @@ import {
 } from './shared';
 
 export function registerTxCommands(program: Command): void {
-	const tx = program.command('tx').description('Access raw Brickken API V2 transaction flows');
+	const tx = program.command('tx').description('Access raw Brickken API transaction flows with API key or x402');
 
 	withExecuteOption(
 		withExecutionModeOption(
@@ -55,6 +55,11 @@ export function registerTxCommands(program: Command): void {
 			options,
 			label: 'Transaction send',
 			path: '/send-transactions',
+			resolveAuth: data => ({
+				// Signed client-controlled transactions use an API key when configured;
+				// relayed calls carry unsigned call data and must use x402 instead.
+				apiKeyOrX402Auth: !data.transactions
+			}),
 			mapInput: (input) => {
 				const txIds = input.txId;
 				const signedTransactions = input.signedTx || input.signedTransactions;
@@ -95,6 +100,7 @@ export function registerTxCommands(program: Command): void {
 				options,
 				label: 'Transaction status',
 				path: '/get-transaction-status',
+				supportsX402: true,
 				buildQuery: (input) => ({
 					hash: input.hash || input.txHash
 				})

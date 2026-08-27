@@ -98,6 +98,7 @@ export async function executePreparedResponse(
 	const sent = await requestJson<any>(config, {
 		method: 'POST',
 		path: '/send-transactions',
+		apiKeyOrX402Auth: true,
 		data: sendBody
 	});
 

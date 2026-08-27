@@ -330,7 +330,7 @@ test('tx prepare --execution-mode brickken-relayed --execute sends a relayed sen
 	}
 });
 
-test('top-level create-token prepares agentCreateToken and ignores API key environment variables', async () => {
+test('top-level create-token prepares agentCreateToken with the configured API key', async () => {
 	const workspace = await createTempWorkspace();
 	const envFile = await writeEnvFile(workspace, 'BRICKKEN_API_KEY=from-env-file\nBKN_API_KEY=also-ignored\n');
 	const server = await startMockServer({
@@ -376,11 +376,69 @@ test('top-level create-token prepares agentCreateToken and ignores API key envir
 		assert.equal(result.status, 0, result.stderr);
 		assert.equal(server.requests.length, 1);
 		assert.equal(server.requests[0].url, '/prepare-transactions');
-		assert.equal(server.requests[0].headers['x-api-key'], undefined);
+		assert.equal(server.requests[0].headers['x-api-key'], 'from-process-env');
 		assert.equal(server.requests[0].body.method, 'agentCreateToken');
 		assert.equal(server.requests[0].body.chainId, 'aa36a7');
 		assert.equal(server.requests[0].body.ownerEmail, 'owner@example.com');
 		assert.equal(server.requests[0].body.symbol, 'RAGT');
+	} finally {
+		await server.close();
+		await fs.rm(workspace, { recursive: true, force: true });
+	}
+});
+
+test('tx prepares and sends a legacy Dapp method with the configured API key', async () => {
+	const workspace = await createTempWorkspace();
+	const envFile = await writeEnvFile(workspace);
+	const inputFile = await writeJsonFile(workspace, 'new-tokenization.json', {
+		chainId: '11155111',
+		tokenizerEmail: 'issuer@example.com',
+		signerAddress: TEST_WALLET.address,
+		name: 'Example Asset',
+		tokenSymbol: 'EXMPL',
+		tokenType: 'RWA_TOKEN',
+		supplyCap: '1000000',
+		url: 'https://example.com/token-docs'
+	});
+	const server = await startMockServer({
+		preparedResponse: {
+			txId: '0xlegacy-dapp',
+			transactions: buildTransaction({ nonce: 11 })
+		},
+		sendResponse: { success: true, totalTransactions: 1, successfulTransactions: 1, failedTransactions: 0 }
+	});
+
+	try {
+		const result = await runCli(
+			[
+				'tx',
+				'prepare',
+				'--method',
+				'newTokenization',
+				'--file',
+				inputFile,
+				'--env-file',
+				envFile,
+				'--base-url',
+				server.baseUrl,
+				'--api-key',
+				'dapp-key',
+				'--private-key',
+				TEST_PRIVATE_KEY,
+				'--execute'
+			],
+			{ cwd: workspace, env: {} }
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+		assert.equal(server.requests.length, 2);
+		assert.equal(server.requests[0].headers['x-api-key'], 'dapp-key');
+		assert.equal(server.requests[1].headers['x-api-key'], 'dapp-key');
+		assert.equal(server.requests[0].headers['x-payment'], undefined);
+		assert.equal(server.requests[1].headers['x-payment'], undefined);
+		assert.equal(server.requests[0].body.method, 'newTokenization');
+		assert.equal(server.requests[0].body.chainId, 'aa36a7');
+		assert.equal(server.requests[0].body.tokenizerEmail, 'issuer@example.com');
 	} finally {
 		await server.close();
 		await fs.rm(workspace, { recursive: true, force: true });

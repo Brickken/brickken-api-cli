@@ -1,6 +1,12 @@
 import { Command, Option } from 'commander';
 import { readStructuredFile } from '../files';
-import { requestJson, executePreparedResponse, cleanInput, ResolvedConfig } from '../internal/core';
+import {
+	requestJson,
+	executePreparedResponse,
+	cleanInput,
+	ResolvedConfig,
+	JsonRequestOptions
+} from '../internal/core';
 import { signTransactionsLocally } from '../internal/core';
 import { resolveCliConfig } from '../cli-config';
 import { hasLogicalFailure, printResult } from '../output';
@@ -9,6 +15,8 @@ type JsonMethod = 'GET' | 'POST' | 'PATCH';
 
 type Mapper = (input: Record<string, any>) => Record<string, any>;
 type QueryBuilder = (input: Record<string, any>) => Record<string, any>;
+type AuthOptions = Pick<JsonRequestOptions, 'apiKeyAuth' | 'apiKeyOrX402Auth'>;
+type AuthResolver = (data: Record<string, any>) => AuthOptions;
 type AfterExecute = (params: {
 	config: ResolvedConfig;
 	body: Record<string, any>;
@@ -76,6 +84,7 @@ export async function runPrepareCommand(params: {
 	const prepared = await requestJson<any>(config, {
 		method: 'POST',
 		path: '/prepare-transactions',
+		apiKeyOrX402Auth: true,
 		data: body
 	});
 
@@ -107,16 +116,18 @@ export async function runDirectJsonCommand(params: {
 	mapInput?: Mapper;
 	requiresApiKey?: boolean;
 	supportsX402?: boolean;
+	resolveAuth?: AuthResolver;
 }): Promise<void> {
 	const config = resolveCliConfig(params.command);
 	const commandInput = await buildCommandInput(params.options, ['file']);
 	const data = params.mapInput ? params.mapInput(commandInput) : commandInput;
+	const auth = params.resolveAuth ? params.resolveAuth(data) : {};
 
 	const result = await requestJson<any>(config, {
 		method: params.method || 'POST',
 		path: params.path,
-		apiKeyAuth: params.requiresApiKey,
-		apiKeyOrX402Auth: params.supportsX402,
+		apiKeyAuth: params.requiresApiKey || auth.apiKeyAuth,
+		apiKeyOrX402Auth: params.supportsX402 || auth.apiKeyOrX402Auth,
 		data
 	});
 
